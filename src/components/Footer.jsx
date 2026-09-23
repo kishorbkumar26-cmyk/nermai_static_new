@@ -63,7 +63,17 @@ export default function Footer() {
     ]
   }
 
-  const f = footerData ? { ...defaultFooter, ...footerData, contactCard: footerData.contactCard || defaultFooter.contactCard } : defaultFooter;
+  const f = footerData ? {
+    ...defaultFooter,
+    ...footerData,
+    // Deep-merge contactCard: uploaded fields override defaults field-by-field
+    contactCard: {
+      ...defaultFooter.contactCard,
+      ...(footerData.contactCard || {}),
+      // If Firestore has an empty qrImage, fall back to the local SVG
+      qrImage: (footerData.contactCard?.qrImage || '').trim() || defaultFooter.contactCard.qrImage
+    }
+  } : defaultFooter;
 
   const showUseful = f.showUsefulLinks !== false && (f.usefulLinks || []).length > 0
   const showNotifs = f.showNotifications !== false && (f.notifications || []).length > 0
@@ -195,21 +205,25 @@ export default function Footer() {
                     {f.contactCard.heading}
                   </div>
                 )}
-                {f.contactCard.qrImage && (
-                  <div className="footer-qr-card">
-                    <img
-                      src={driveStorage.formatImageUrl(f.contactCard.qrImage) || f.contactCard.qrImage}
-                      alt="QR Code - Scan to Save Contact"
-                      className="footer-qr-img"
-                      onError={(e) => {
+                {/* Always show QR: uploaded image first, fallback to generated SVG */}
+                <div className="footer-qr-card">
+                  <img
+                    src={driveStorage.formatImageUrl(f.contactCard.qrImage) || f.contactCard.qrImage}
+                    alt="QR Code - Scan to Save Contact"
+                    className="footer-qr-img"
+                    onError={(e) => {
+                      // Try Drive CDN fallback chain first (for uploaded Drive URLs)
+                      const step = e.currentTarget.dataset.fallbackStep
+                      if (!step) {
                         driveStorage.handleImageError(e, '/nermai-qr-contact.svg')
-                        const step = e.target?.dataset?.fallbackStep
-                        if (!step) e.currentTarget.src = '/nermai-qr-contact.svg'
-                      }}
-                    />
-                    <p className="footer-qr-caption">Scan to Save Contact</p>
-                  </div>
-                )}
+                      } else if (e.currentTarget.src !== '/nermai-qr-contact.svg') {
+                        // All Drive CDN attempts failed — use the local SVG fallback
+                        e.currentTarget.src = '/nermai-qr-contact.svg'
+                      }
+                    }}
+                  />
+                  <p className="footer-qr-caption">Scan to Save Contact</p>
+                </div>
                 {f.contactCard.desc && (
                   <p className="footer-qr-desc">
                     {f.contactCard.desc}
