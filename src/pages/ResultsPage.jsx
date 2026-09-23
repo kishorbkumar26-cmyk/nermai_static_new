@@ -57,7 +57,7 @@ function AvatarImg({ photo, name, size = 130 }) {
       src={url} 
       alt={name || 'Achiever'}
       crossOrigin="anonymous"
-      onError={() => setErr(true)}
+      onError={(e) => { driveStorage.handleImageError(e, '') || setErr(true); const s = e.target?.dataset?.fallbackStep; if (!s) setErr(true) }}
       style={{ 
         width: size, 
         height: size, 

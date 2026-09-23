@@ -53,7 +53,7 @@ export default function Footer() {
     contactCard: {
       heading: '"NERMAI IAS ACADEMY" is ready — download the file or scan the QR code.',
       desc: "Scan the QR with the iPhone Camera app, or Android's Camera/Google Lens — it'll offer to add the contact directly. Or share the downloaded .vcf file instead.",
-      qrImage: '/media_1787746745912.png', // Using one of the uploaded pngs as fallback if it's the QR, or just empty
+      qrImage: '/nermai-qr-contact.svg', // Real QR code generated from NERMAI VCF contact data
       vcfUrl: '/NERMAI_IAS_ACADEMY.vcf'
     },
     socialLinks: [
@@ -97,7 +97,7 @@ export default function Footer() {
             {/* About / Brand */}
             <div className="footer-col footer-brand-col">
               <div className="footer-col-brand">
-                <img src="/nermai-logo.png" alt="Nermai IAS Academy Logo" style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} />
+                <img src="/nermai-logo.png" alt="Nermai IAS Academy Logo" style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = '/favicon.png' }} />
                 <span className="footer-brand-name">NERMAI IAS ACADEMY</span>
               </div>
               <p className="footer-brand-desc">{f.brand.desc}</p>
@@ -106,7 +106,7 @@ export default function Footer() {
                 {(f.socialLinks || []).map((social, i) => (
                   <a key={i} href={social.link || '#'} className="footer-social-btn" aria-label={social.name} rel="noopener noreferrer" target="_blank">
                     {social.iconUrl ? (
-                      <img src={driveStorage.formatImageUrl(social.iconUrl) || social.iconUrl} alt={social.name} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                      <img src={driveStorage.formatImageUrl(social.iconUrl) || social.iconUrl} alt={social.name} style={{ width: '20px', height: '20px', objectFit: 'contain' }} onError={(e) => driveStorage.handleImageError(e, '')} />
                     ) : (
                       <i className={social.iconClass || "fa-solid fa-link"} />
                     )}
@@ -198,9 +198,14 @@ export default function Footer() {
                 {f.contactCard.qrImage && (
                   <div className="footer-qr-card">
                     <img
-                      src={f.contactCard.qrImage}
+                      src={driveStorage.formatImageUrl(f.contactCard.qrImage) || f.contactCard.qrImage}
                       alt="QR Code - Scan to Save Contact"
                       className="footer-qr-img"
+                      onError={(e) => {
+                        driveStorage.handleImageError(e, '/nermai-qr-contact.svg')
+                        const step = e.target?.dataset?.fallbackStep
+                        if (!step) e.currentTarget.src = '/nermai-qr-contact.svg'
+                      }}
                     />
                     <p className="footer-qr-caption">Scan to Save Contact</p>
                   </div>

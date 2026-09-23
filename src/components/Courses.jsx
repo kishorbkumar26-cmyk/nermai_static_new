@@ -236,7 +236,13 @@ function CourseCardBanner({ course, coverImg, isPopular }) {
           alt={title} 
           className="replicated-banner-img" 
           loading="lazy" 
-          onError={() => setHasError(true)} 
+          onError={(e) => {
+            const handled = driveStorage.handleImageError(e, '')
+            if (handled === false) setHasError(true)
+            // If no fallback step was taken (non-Drive URL), also hide
+            const step = e.target?.dataset?.fallbackStep
+            if (!step) setHasError(true)
+          }} 
         />
       ) : (
         renderCategoryBanner(course)
@@ -262,7 +268,11 @@ function CourseCardEmblem({ course, logoImg }) {
           src={logoImg} 
           alt={title} 
           className="replicated-emblem-img" 
-          onError={() => setHasError(true)} 
+          onError={(e) => {
+            driveStorage.handleImageError(e, '')
+            const step = e.target?.dataset?.fallbackStep
+            if (!step) setHasError(true)
+          }} 
         />
       ) : (
         renderCategoryEmblem(course)

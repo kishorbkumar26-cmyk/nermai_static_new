@@ -143,7 +143,7 @@ export default function Testimonials({ customConfig }) {
         <p className="card-quote-text">{t.quote || t.text || t.content}</p>
         <div className="card-author-row">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={t.name} className="card-avatar-img" referrerPolicy="no-referrer" />
+            <img src={avatarUrl} alt={t.name} className="card-avatar-img" referrerPolicy="no-referrer" onError={(e) => driveStorage.handleImageError(e, '')} />
           ) : (
             <div className="card-avatar-fallback">
               {(t.name || 'A')[0].toUpperCase()}

@@ -155,6 +155,7 @@ export default function JourneySection({ steps }) {
                         alt={step.title} 
                         crossOrigin={formattedImg && formattedImg.includes('lh3.google') ? 'anonymous' : undefined}
                         style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+                        onError={(e) => driveStorage.handleImageError(e, '')}
                       />
                     ) : (
                       step.icon

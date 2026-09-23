@@ -7,6 +7,7 @@ import {
   Search, Home as HomeIcon, ArrowRight, X
 } from 'lucide-react'
 import TopTicker from './TopTicker'
+import { driveStorage } from '../services/driveStorage'
 import './Header.css'
 
 const DEFAULT_TOPBAR_DATA = {
@@ -230,7 +231,7 @@ export default function Header() {
             {/* Brand Logo & Motto */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <Link to="/" className="brand-group" aria-label={`${branding.title || 'NERMAI'} ${branding.subtitle || 'IAS ACADEMY'} Home`}>
-                <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} className="brand-logo-img" />
+                <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} className="brand-logo-img" onError={(e) => driveStorage.handleImageError(e, '/nermai-logo.png')} />
                 <div className="brand-titles">
                   <span className="brand-name">{branding.title || 'NERMAI'}</span>
                   <span className="brand-sub">{branding.subtitle || 'IAS ACADEMY'}</span>
@@ -395,7 +396,7 @@ export default function Header() {
       )}
       <nav className={`mobile-nav${mobileOpen ? ' open' : ''}`} aria-label="Mobile navigation">
         <div className="mobile-nav-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} style={{ width: '42px', height: '42px', objectFit: 'contain', borderRadius: '50%' }} />
+          <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} style={{ width: '42px', height: '42px', objectFit: 'contain', borderRadius: '50%' }} onError={(e) => driveStorage.handleImageError(e, '/nermai-logo.png')} />
           <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', color: '#FFF' }}>
             {branding.title || 'NERMAI'} {branding.subtitle || 'IAS ACADEMY'}
           </span>

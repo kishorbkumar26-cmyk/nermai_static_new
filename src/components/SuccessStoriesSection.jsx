@@ -364,7 +364,7 @@ export default function SuccessStoriesSection({ customConfig }) {
                               src={photoUrl}
                               alt={t.name}
                               className="ss-topper-photo"
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              onError={(e) => driveStorage.handleImageError(e, '')}
                             />
                           ) : (
                             <div className="ss-topper-photo-fallback">
@@ -585,7 +585,7 @@ export default function SuccessStoriesSection({ customConfig }) {
                   alt={selectedStory.name}
                   className="rp-modal-photo"
                   crossOrigin={driveStorage.formatImageUrl(selectedStory.photo)?.includes('lh3.google') ? 'anonymous' : undefined}
-                  onError={e => { e.currentTarget.style.display = 'none' }}
+                  onError={(e) => driveStorage.handleImageError(e, '')}
                 />
               )}
               <div className="rp-modal-header-info">

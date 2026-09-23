@@ -111,7 +111,11 @@ export default function CoursesHero({ customConfig }) {
         crossOrigin="anonymous"
         aria-hidden="true"
         onError={(e) => {
-          if (e.currentTarget.src !== DEFAULT_COURSES_ARTWORK_ASSET) {
+          // First try Drive CDN fallbacks if this is a Drive URL
+          const step = e.currentTarget.dataset.fallbackStep
+          if (!step && e.currentTarget.src !== DEFAULT_COURSES_ARTWORK_ASSET) {
+            driveStorage.handleImageError(e, DEFAULT_COURSES_ARTWORK_ASSET)
+          } else if (e.currentTarget.src !== DEFAULT_COURSES_ARTWORK_ASSET) {
             e.currentTarget.src = DEFAULT_COURSES_ARTWORK_ASSET
           }
         }}
