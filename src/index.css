@@ -1730,10 +1730,9 @@ ul, ol { list-style: none; }
 }
 .hero-carousel {
   width: 100%;
-  /* Use aspect-ratio matching wide promo banners (1920x600 ≈ 16:5).
-     max-height prevents going too tall on ultra-wide screens. */
-  aspect-ratio: 16 / 5;
-  max-height: 80svh;
+  /* aspect-ratio is set dynamically via inline style from HeroCarousel.jsx
+     based on the uploaded image's natural dimensions.
+     min-height is the fallback while the image is loading. */
   min-height: 280px;
   position: relative;
   overflow: hidden;
@@ -1741,9 +1740,7 @@ ul, ol { list-style: none; }
 }
 @media (max-width: 768px) {
   .hero-carousel {
-    aspect-ratio: 4 / 3;
-    max-height: 90svh;
-    min-height: 220px;
+    min-height: 200px;
   }
 }
 
@@ -4038,8 +4035,8 @@ ul, ol { list-style: none; }
   color: rgba(255,255,255,0.2);
   text-transform: uppercase;
 }
-/* Hero slide — aspect-ratio sized to match wide promo banners */
-.hero-carousel { width: 100%; position: relative; aspect-ratio: 16 / 5; max-height: 80svh; min-height: 280px; overflow: hidden; background: var(--maroon-deep); }
+/* Hero carousel — aspect-ratio set dynamically by JS based on uploaded image natural dimensions */
+.hero-carousel { width: 100%; position: relative; min-height: 280px; overflow: hidden; background: var(--maroon-deep); }
 .hero-slide {
   display: none;
   width: 100%; position: absolute; inset: 0;
