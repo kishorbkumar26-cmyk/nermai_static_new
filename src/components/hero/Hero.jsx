@@ -58,8 +58,8 @@ export default function Hero({ autoPlayInterval = 6000 }) {
 
   if (loading && banners.length === 0) {
     return (
-      <section className="hero-banner-container" style={{ position: 'relative', overflow: 'hidden', backgroundColor: '#1a0a0a' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2b0b0e 0%, #150507 100%)' }} />
+      <section className="hero-banner-container">
+        <div style={{ width: '100%', minHeight: '400px', background: 'linear-gradient(135deg, #2b0b0e 0%, #150507 100%)' }} />
       </section>
     );
   }
@@ -69,7 +69,7 @@ export default function Hero({ autoPlayInterval = 6000 }) {
   }
 
   return (
-    <section className="hero-banner-container" style={{ position: 'relative', overflow: 'hidden' }}>
+    <section className="hero-banner-container">
       {/* Only render the active slide — BannerSlide animates in via CSS */}
       <BannerSlide
         key={currentIndex}

@@ -53,19 +53,10 @@ export default function HeroCarousel() {
   const [slides, setSlides] = useState(DEFAULT_SLIDES)
   const [active, setActive] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [carouselAspect, setCarouselAspect] = useState(null)
   const timerRef = useRef(null)
   const touchStartRef = useRef(null)
   const touchEndRef = useRef(null)
   const carouselRef = useRef(null)
-
-  // Auto-size the carousel to match the loaded image's natural dimensions
-  const handleImageLoad = (e) => {
-    const img = e.currentTarget
-    if (img.naturalWidth && img.naturalHeight) {
-      setCarouselAspect(`${img.naturalWidth} / ${img.naturalHeight}`)
-    }
-  }
 
   useEffect(() => {
     const unsub = fbFirestore.onHeroSlidesChanged(items => {
@@ -143,7 +134,6 @@ export default function HeroCarousel() {
       <div
         ref={carouselRef}
         className="hero-carousel"
-        style={carouselAspect ? { aspectRatio: carouselAspect } : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -175,7 +165,6 @@ export default function HeroCarousel() {
                     alt={slide.title || `Nermai Academy slide ${i + 1}`}
                     className="hero-slide-img"
                     crossOrigin="anonymous"
-                    onLoad={i === 0 ? handleImageLoad : undefined}
                     onError={(e) => driveStorage.handleImageError(e, '')}
                     loading={i === 0 ? 'eager' : 'lazy'}
                   />

@@ -43,27 +43,22 @@
   border-radius: 20px;
 }
 
-/* Hero Carousel Aspect Ratio — Commercial Banner */
+/* Hero Banner — height follows the uploaded image's natural aspect ratio automatically */
 .hero-banner-container {
   position: relative;
   width: 100%;
   overflow: hidden;
-  height: calc(100svh - 36px); /* subtract ticker height */
-  max-height: none;
+  /* NO fixed height — the image inside drives the height naturally */
 }
 
 @media (max-width: 768px) {
   .hero-banner-container {
-    height: 65vh;
-    min-height: 360px;
+    /* No fixed height on mobile either — image drives its own height */
   }
 }
 
 @media (max-width: 480px) {
   .hero-banner-container {
-    height: 60vh;
-    min-height: 320px;
+    /* Same — no fixed height */
   }
 }
-
-

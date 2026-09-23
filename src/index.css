@@ -1730,40 +1730,41 @@ ul, ol { list-style: none; }
 }
 .hero-carousel {
   width: 100%;
-  /* aspect-ratio is set dynamically via inline style from HeroCarousel.jsx
-     based on the uploaded image's natural dimensions.
-     min-height is the fallback while the image is loading. */
-  min-height: 280px;
   position: relative;
   overflow: hidden;
   background: var(--maroon-deep);
 }
-@media (max-width: 768px) {
-  .hero-carousel {
-    min-height: 200px;
-  }
-}
 
-/* Slides */
+/* Slides — Only the active slide takes space in normal document flow.
+   This guarantees that every slide displays at its EXACT natural aspect ratio without being stretched or cropped by other slides with different aspect ratios! */
 .hero-slide {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
   opacity: 0;
-  transition: opacity 0.7s var(--ease-out);
   pointer-events: none;
+  transition: opacity 0.5s var(--ease-out);
+  z-index: 0;
 }
 .hero-slide--active {
+  position: relative;
   opacity: 1;
   pointer-events: auto;
+  z-index: 1;
 }
 .hero-slide-picture,
-.hero-slide-picture source { display: block; width: 100%; height: 100%; }
+.hero-slide-picture source {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .hero-slide-img {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
+  height: auto;
   display: block;
+  object-fit: contain;
+  max-width: 100%;
 }
 
 /* Placeholder */
@@ -4035,27 +4036,7 @@ ul, ol { list-style: none; }
   color: rgba(255,255,255,0.2);
   text-transform: uppercase;
 }
-/* Hero carousel — aspect-ratio set dynamically by JS based on uploaded image natural dimensions */
-.hero-carousel { width: 100%; position: relative; min-height: 280px; overflow: hidden; background: var(--maroon-deep); }
-.hero-slide {
-  display: none;
-  width: 100%; position: absolute; inset: 0;
-}
-.hero-slide--active { display: block; }
-.hero-slide-picture {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-}
-.hero-slide-img {
-  width: 100%; height: 100%;
-  object-fit: contain;
-  display: block;
-}
-.hero-slide-placeholder {
-  width: 100%;
-  min-height: calc(100svh - 68px);
-}
+
 @media (max-width: 768px) {
   .hero-cinematic-title { font-size: clamp(2.5rem, 12vw, 4rem); }
   .hero-cinematic-content { padding: var(--space-12) var(--space-5) var(--space-16); }
@@ -4575,16 +4556,7 @@ ul, ol { list-style: none; }
   right: calc(var(--space-6) + env(safe-area-inset-right, 0px));
 }
 
-/* ── Fix hero height for iOS (100vh bug) ─────────────────────────────────── */
-.hero-carousel {
-  min-height: -webkit-fill-available;
-}
-.hero-slide {
-  min-height: -webkit-fill-available;
-}
-.hero-slide-placeholder {
-  min-height: 280px !important;
-}
+
 
 /* ── Sticky Header: proper z-index and iOS backdrop ─────────────────────── */
 .site-header {
@@ -4916,12 +4888,6 @@ body.mobile-nav-open {
 /* ── iOS Specific Fixes ───────────────────────────────────────────────────── */
 /* Fix 100vh on iOS Safari (address bar causes issues) */
 @supports (-webkit-touch-callout: none) {
-  .hero-carousel {
-    height: -webkit-fill-available;
-    max-height: -webkit-fill-available;
-    min-height: 280px;
-  }
-  .hero-slide { height: -webkit-fill-available; }
   .mobile-nav { height: -webkit-fill-available; }
 }
 
@@ -5200,23 +5166,13 @@ body {
   }
 }
 
-/* ── Hero banner — proper height on all devices ──────────────────────────── */
+/* ── Hero banner — height is driven by the uploaded image's natural proportions ──────────────────────────── */
 .hero-banner-container {
   width: 100%;
-  min-height: 520px;
   position: relative;
   overflow: hidden;
   background: #1a0a0a;
-}
-@media (max-width: 768px) {
-  .hero-banner-container {
-    min-height: 360px;
-  }
-}
-@media (max-width: 480px) {
-  .hero-banner-container {
-    min-height: 320px;
-  }
+  /* NO fixed height — banner image defines its own height via width:100%; height:auto */
 }
 
 /* ── About intro section — stack on mobile ───────────────────────────────── */
@@ -5479,23 +5435,8 @@ html, body, #root {
 
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   P2 — MOBILE HERO BANNER HEIGHT
-   Set to ~52-56vh on mobile (~25% increase from compact 40vh) so content below is visible
+   P2 — MOBILE HERO BANNER — no fixed height, image proportions are preserved
    ══════════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  .hero-banner-container {
-    min-height: 360px !important;
-    max-height: 66vh !important;
-    height: 65vh !important;
-  }
-}
-@media (max-width: 480px) {
-  .hero-banner-container {
-    min-height: 320px !important;
-    max-height: 62vh !important;
-    height: 60vh !important;
-  }
-}
 
 /* ══════════════════════════════════════════════════════════════════════════════
    P3 — CONTENT TEXT SIZE INCREASE & DARK HIGH-CONTRAST READABLE COLOR (WEB ONLY ≥ 769px)
