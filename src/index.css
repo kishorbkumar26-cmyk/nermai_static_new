@@ -1445,6 +1445,10 @@ ul, ol { list-style: none; }
 .ap-btn-danger:hover { background: rgba(220,38,38,0.2); }
 .ap-btn-ghost { background: var(--gray-100); color: var(--gray-700); }
 .ap-btn-ghost:hover { background: var(--gray-200); }
+.ap-btn-warning { background: rgba(202,138,4,0.12); color: #b45309; border: 1.5px solid rgba(202,138,4,0.35); }
+.ap-btn-warning:hover { background: rgba(202,138,4,0.22); }
+.ap-btn-secondary { background: var(--gray-100); color: var(--gray-600); border: 1.5px solid var(--gray-200); }
+.ap-btn-secondary:hover { background: var(--gray-200); color: var(--gray-800); }
 
 .ap-file-drop {
   border: 2px dashed var(--gray-300);

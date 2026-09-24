@@ -86,74 +86,74 @@ function FileDropZone({ onUpload, uploading, progress }) {
 // ─── Section: Hero Slides (Dual Image: Desktop + Mobile) ─────────────────────
 function HeroSection({ toast }) {
   const [slides, setSlides] = useState([])
+  const [editingId, setEditingId] = useState(null)   // null = "Add new" mode
   const [form, setForm] = useState({
     urlDesktop: '', urlMobile: '',
     ctaLink: '#', scene: 'none'
   })
-  const [uploadingDesk, setUploadingDesk] = useState(false)
-  const [progressDesk, setProgressDesk] = useState(0)
-  const [uploadingMob, setUploadingMob] = useState(false)
-  const [progressMob, setProgressMob] = useState(0)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const unsub = fbFirestore.onHeroSlidesChanged(setSlides)
     return () => unsub()
   }, [])
 
-  // Upload DESKTOP image (PC Banner · 1920 × 600 px)
-  const handleUploadDesktop = async (file) => {
-    setUploadingDesk(true); setProgressDesk(20)
-    try {
-      const result = await driveStorage.processAndUploadImage(file, {
-        subFolderName: 'nermai-hero-desktop',
-        maxWidth: 1920,
-        quality: 0.88
-      })
-      setProgressDesk(90)
-      setForm(f => ({ ...f, urlDesktop: result.url }))
-      toast.success(`🖥️ Desktop image uploaded! (${result.storageType === 'google_drive' ? 'Google Drive' : 'Local'}, ${result.reductionPct}% smaller)`)
-    } catch (e) {
-      toast.error('Desktop upload failed: ' + e.message)
-    } finally {
-      setUploadingDesk(false); setProgressDesk(0)
-    }
+  // ── Start editing an existing slide ──────────────────────────────────────
+  const handleStartEdit = (slide) => {
+    setEditingId(slide.id)
+    setForm({
+      urlDesktop: slide.urlDesktop || slide.url || '',
+      urlMobile:  slide.urlMobile  || '',
+      ctaLink:    slide.ctaLink    || '#',
+      scene:      slide.scene      || 'none',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    toast.info(`✏️ Editing slide "${slide.id.substring(0, 5)}"`)
   }
 
-  // Upload MOBILE image (Portrait Poster · 768 × 1024 px)
-  const handleUploadMobile = async (file) => {
-    setUploadingMob(true); setProgressMob(20)
-    try {
-      const result = await driveStorage.processAndUploadImage(file, {
-        subFolderName: 'nermai-hero-mobile',
-        maxWidth: 768,
-        quality: 0.85
-      })
-      setProgressMob(90)
-      setForm(f => ({ ...f, urlMobile: result.url }))
-      toast.success(`📱 Mobile image uploaded! (${result.storageType === 'google_drive' ? 'Google Drive' : 'Local'}, ${result.reductionPct}% smaller)`)
-    } catch (e) {
-      toast.error('Mobile upload failed: ' + e.message)
-    } finally {
-      setUploadingMob(false); setProgressMob(0)
-    }
+  // ── Cancel edit — go back to "Add new" mode ───────────────────────────────
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setForm({ urlDesktop: '', urlMobile: '', ctaLink: '#', scene: 'none' })
   }
 
-  const handleAdd = async () => {
-    if (!form.urlDesktop && !form.urlMobile && !form.title) {
-      toast.error('At least one image or title is required')
+  // ── Save (Add new OR Update existing) ────────────────────────────────────
+  const handleSave = async () => {
+    if (!form.urlDesktop && !form.urlMobile) {
+      toast.error('At least one image is required')
       return
     }
+    setSaving(true)
     try {
-      await fbFirestore.addHeroSlide(form)
-      setForm({ urlDesktop: '', urlMobile: '', ctaLink: '#', scene: 'none' })
-      toast.success('Hero slide added successfully!')
-    } catch (e) { toast.error('Error: ' + e.message) }
+      if (editingId) {
+        await fbFirestore.updateHeroSlide(editingId, {
+          urlDesktop: form.urlDesktop,
+          urlMobile:  form.urlMobile,
+          ctaLink:    form.ctaLink,
+          scene:      form.scene,
+          updatedAt:  new Date(),
+        })
+        toast.success('✅ Slide updated successfully!')
+        handleCancelEdit()
+      } else {
+        await fbFirestore.addHeroSlide(form)
+        setForm({ urlDesktop: '', urlMobile: '', ctaLink: '#', scene: 'none' })
+        toast.success('✅ Hero slide added successfully!')
+      }
+    } catch (e) {
+      toast.error('Error: ' + e.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this slide?')) return
-    try { await fbFirestore.deleteHeroSlide(id); toast.success('Slide deleted successfully') }
-    catch (e) { toast.error(e.message) }
+    try {
+      await fbFirestore.deleteHeroSlide(id)
+      if (editingId === id) handleCancelEdit()
+      toast.success('Slide deleted successfully')
+    } catch (e) { toast.error(e.message) }
   }
 
   const handleMoveSlide = async (id, direction) => {
@@ -163,12 +163,12 @@ function HeroSection({ toast }) {
     if (targetIndex < 0 || targetIndex >= slides.length) return;
 
     const currentSlide = slides[currentIndex];
-    const targetSlide = slides[targetIndex];
+    const targetSlide  = slides[targetIndex];
 
     try {
       await Promise.all([
         fbFirestore.updateHeroSlide(currentSlide.id, { order: targetIndex }),
-        fbFirestore.updateHeroSlide(targetSlide.id, { order: currentIndex })
+        fbFirestore.updateHeroSlide(targetSlide.id,  { order: currentIndex })
       ]);
       toast.success('Slide order updated');
     } catch (e) {
@@ -176,11 +176,29 @@ function HeroSection({ toast }) {
     }
   }
 
+  const isEditing = !!editingId
+
   return (
     <div>
       <h2 className="ap-section-title"><i className="fa-solid fa-images"></i> Hero Slides</h2>
 
-      <div className="ap-card">
+      {/* ── Upload / Edit Form ── */}
+      <div className="ap-card" style={ isEditing ? { border: '2px solid var(--saffron)', boxShadow: '0 0 0 4px rgba(230,160,0,0.08)' } : {} }>
+
+        {/* Form header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isEditing ? 'var(--saffron)' : 'var(--ink)' }}>
+            {isEditing
+              ? `✏️ Editing Slide — "${editingId.substring(0, 5)}"`
+              : '➕ Add New Slide'}
+          </div>
+          {isEditing && (
+            <button className="ap-btn ap-btn-ghost ap-btn-sm" onClick={handleCancelEdit}>
+              <i className="fa-solid fa-xmark"></i> Cancel Edit
+            </button>
+          )}
+        </div>
+
         {/* Dimension guide */}
         <div className="ap-hero-dim-guide">
           <div className="ap-hero-dim-badge ap-hero-dim-badge--desk">
@@ -188,7 +206,7 @@ function HeroSection({ toast }) {
             <div>
               <div className="ap-hero-dim-label">🖥️ PC / Desktop Banner</div>
               <div className="ap-hero-dim-size">Recommended: <strong>1920 × 600 px</strong></div>
-              <div className="ap-hero-dim-hint">Wide landscape image • 16:5 ratio • JPG or PNG</div>
+              <div className="ap-hero-dim-hint">Wide landscape image • Any ratio • JPG or PNG</div>
             </div>
           </div>
           <div className="ap-hero-dim-badge ap-hero-dim-badge--mob">
@@ -250,13 +268,25 @@ function HeroSection({ toast }) {
               </select>
             </div>
           </div>
-          <button className="ap-btn ap-btn-primary" onClick={handleAdd}>
-            <i className="fa-solid fa-plus"></i> Add Banner to Carousel
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              className={`ap-btn ${isEditing ? 'ap-btn-warning' : 'ap-btn-primary'}`}
+              onClick={handleSave}
+              disabled={saving}
+            >
+              <i className={`fa-solid ${saving ? 'fa-spinner fa-spin' : isEditing ? 'fa-floppy-disk' : 'fa-plus'}`}></i>
+              {saving ? 'Saving…' : isEditing ? 'Save Changes' : 'Add Banner to Carousel'}
+            </button>
+            {isEditing && (
+              <button className="ap-btn ap-btn-ghost" onClick={handleCancelEdit}>
+                <i className="fa-solid fa-xmark"></i> Cancel
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Current slides list */}
+      {/* ── Current slides list ── */}
       <div className="ap-card">
         <div style={{ fontWeight: 700, marginBottom: '1rem', color: 'var(--ink)' }}>
           Current Slides ({slides.length})
@@ -268,8 +298,13 @@ function HeroSection({ toast }) {
             {slides.map((slide, i) => {
               const deskUrl = driveStorage.formatImageUrl(slide.urlDesktop || slide.url)
               const mobUrl  = driveStorage.formatImageUrl(slide.urlMobile)
+              const isBeingEdited = editingId === slide.id
               return (
-                <div key={slide.id} className="ap-item">
+                <div
+                  key={slide.id}
+                  className="ap-item"
+                  style={isBeingEdited ? { border: '2px solid var(--saffron)', background: 'rgba(230,160,0,0.04)', borderRadius: '8px' } : {}}
+                >
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {deskUrl && (
                       <img src={deskUrl} alt="desktop" className="ap-item-thumb" style={{ aspectRatio: '16/5' }}
@@ -281,7 +316,10 @@ function HeroSection({ toast }) {
                     )}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div className="ap-item-title">Banner {slide.id.substring(0, 5)}</div>
+                    <div className="ap-item-title">
+                      Banner {slide.id.substring(0, 5)}
+                      {isBeingEdited && <span style={{ marginLeft: '0.5rem', fontSize: '0.65rem', color: 'var(--saffron)', fontWeight: 700 }}>✏️ EDITING</span>}
+                    </div>
                     <div className="ap-item-sub">
                       3D Layer: {slide.scene || 'none'}
                       {slide.ctaLink && ` | Link: ${slide.ctaLink}`}
@@ -300,6 +338,13 @@ function HeroSection({ toast }) {
                         <i className="fa-solid fa-arrow-down"></i>
                       </button>
                     </div>
+                    <button
+                      className={`ap-btn ap-btn-sm ${isBeingEdited ? 'ap-btn-warning' : 'ap-btn-secondary'}`}
+                      onClick={() => isBeingEdited ? handleCancelEdit() : handleStartEdit(slide)}
+                      title={isBeingEdited ? 'Cancel Edit' : 'Edit Slide'}
+                    >
+                      <i className={`fa-solid ${isBeingEdited ? 'fa-xmark' : 'fa-pen'}`}></i>
+                    </button>
                     <button className="ap-btn ap-btn-danger ap-btn-sm" onClick={() => handleDelete(slide.id)}>
                       <i className="fa-solid fa-trash"></i>
                     </button>
@@ -313,6 +358,7 @@ function HeroSection({ toast }) {
     </div>
   )
 }
+
 
 // ─── Section: Notices ─────────────────────────────────────────────────────────
 function NoticesSection({ toast }) {
