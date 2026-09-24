@@ -48,7 +48,7 @@ if (fs.existsSync(envPath)) {
 const GOOGLE_API_KEY  = process.env.GOOGLE_MAPS_API_KEY
 const PLACE_ID        = process.env.GOOGLE_PLACE_ID
 const MIN_STAR_RATING = 4   // Only save reviews with >= 4 stars
-const ADMIN_KEY_FILE  = path.resolve(__dirname, '../nermai-static-firebase-adminsdk-fbsvc-abdaba28ad.json')
+const ADMIN_KEY_FILE  = path.resolve(__dirname, '../nermaistatic-firebase-adminsdk-fbsvc-40686bcf86.json')
 const COLLECTION_NAME = 'nermai_testimonials'
 
 // ── Validate config ───────────────────────────────────────────────────────────

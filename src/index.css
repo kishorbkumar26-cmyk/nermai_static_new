@@ -2830,101 +2830,403 @@ ul, ol { list-style: none; }
 .wyg-card-title { font-size: 0.95rem; font-weight: 700; color: var(--ink); margin-bottom: 0.35rem; }
 .wyg-card-desc  { font-size: 0.8rem; color: var(--gray-500); line-height: 1.6; margin: 0; }
 
-/* ── Admin Login Page ─────────────────────────────────────────────────────── */
-.admin-login-page {
+/* ── Admin Login Page (alp-*) ──────────────────────────────────────────────── */
+
+/* Root: full-viewport split layout */
+.alp-root {
   min-height: 100svh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--maroon-deep);
-  background-image:
-    radial-gradient(ellipse at 20% 20%, rgba(123,27,46,0.6) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(230,92,0,0.15) 0%, transparent 60%);
-  padding: 2rem;
+  background: #0d0608;
   position: relative;
   overflow: hidden;
 }
-.admin-login-page::before {
+
+/* Ambient floating orbs */
+.alp-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: alpOrb 12s ease-in-out infinite alternate;
+}
+.alp-orb-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(123,27,46,0.55) 0%, transparent 70%);
+  top: -15%; left: -10%;
+  animation-delay: 0s;
+}
+.alp-orb-2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(212,175,55,0.18) 0%, transparent 70%);
+  bottom: -10%; right: -5%;
+  animation-delay: -4s;
+}
+.alp-orb-3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(158,40,64,0.3) 0%, transparent 70%);
+  top: 50%; left: 35%;
+  animation-delay: -8s;
+}
+@keyframes alpOrb {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.08); }
+}
+
+/* ── Left brand panel ── */
+.alp-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 42%;
+  min-height: 100svh;
+  padding: 3.5rem 3rem;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(160deg, rgba(74,14,28,0.95) 0%, rgba(13,6,8,0.9) 100%);
+  border-right: 1px solid rgba(212,175,55,0.12);
+  overflow: hidden;
+}
+.alp-brand::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 79px,
-    rgba(255,255,255,0.02) 80px
-  ), repeating-linear-gradient(
-    90deg, transparent, transparent 79px,
-    rgba(255,255,255,0.02) 80px
-  );
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(212,175,55,0.04) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(212,175,55,0.04) 60px);
   pointer-events: none;
 }
-.admin-login-card {
+.alp-brand-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   position: relative;
   z-index: 1;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  backdrop-filter: blur(20px);
-  padding: 2.5rem 2rem;
-  width: 100%;
-  max-width: 420px;
-  border-radius: 0; /* brutalist */
 }
-.admin-login-logo {
-  display: flex; align-items: center; gap: 0.75rem;
+
+/* Logo ring */
+.alp-ring-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
   margin-bottom: 2rem;
 }
-.admin-login-badge {
-  width: 44px; height: 44px;
-  background: var(--maroon);
-  border: 2px solid var(--saffron);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-size: 1.25rem;
-  color: var(--white); font-weight: 700;
+.alp-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, var(--saffron), var(--maroon-light), var(--saffron)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  animation: alpRingSpin 8s linear infinite;
 }
-.admin-login-brand { display: flex; flex-direction: column; }
-.admin-login-name { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.15em; color: var(--white); }
-.admin-login-sub  { font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; }
-.admin-login-title {
-  font-family: var(--font-display); font-size: 1.5rem; font-weight: 700;
-  color: var(--white); margin-bottom: 0.35rem;
+@keyframes alpRingSpin {
+  to { transform: rotate(360deg); }
 }
-.admin-login-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
-.admin-login-label { display: block; font-size: 0.75rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); margin-bottom: 0.4rem; font-family: var(--font-mono); }
-.admin-login-input {
-  width: 100%; padding: 0.85rem 1rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: var(--white); font-size: 1rem;
-  outline: none; transition: border-color 0.2s;
-  border-radius: 0;
-  font-family: var(--font-mono); letter-spacing: 0.15em;
+.alp-logo-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Brand text */
+.alp-brand-name {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  letter-spacing: -0.01em;
+}
+.alp-brand-tagline {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+  margin: 0 0 2.5rem;
+  max-width: 28ch;
+}
+
+/* Stats row */
+.alp-brand-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.alp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.alp-stat-num {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--saffron);
+  line-height: 1;
+}
+.alp-stat-lbl {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.alp-stat-div {
+  width: 1px;
+  height: 32px;
+  background: rgba(212,175,55,0.25);
+}
+
+/* Brand footer */
+.alp-brand-footer {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Right form panel ── */
+.alp-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2.5rem;
+  position: relative;
+  z-index: 1;
+}
+.alp-form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Mobile logo (hidden on desktop) */
+.alp-mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.alp-mobile-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.alp-mobile-logo-name {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: var(--white);
+}
+
+/* Form header */
+.alp-form-header {
+  margin-bottom: 2.25rem;
+}
+.alp-form-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--saffron);
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+}
+.alp-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--saffron);
+  box-shadow: 0 0 8px var(--saffron);
+  animation: alpDotPulse 2s ease-in-out infinite;
+}
+@keyframes alpDotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.alp-form-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 0.6rem;
+  line-height: 1.1;
+}
+.alp-form-desc {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Form */
+.alp-form { display: flex; flex-direction: column; gap: 0; }
+.alp-field { display: flex; flex-direction: column; gap: 0.5rem; }
+.alp-field-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+}
+
+/* Input */
+.alp-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.alp-input-icon {
+  position: absolute;
+  left: 1rem;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.85rem;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.alp-input-wrap:focus-within .alp-input-icon {
+  color: var(--saffron);
+}
+.alp-input {
+  width: 100%;
+  padding: 0.95rem 3rem 0.95rem 2.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
-.admin-login-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 0.05em; }
-.admin-login-input:focus { border-color: var(--saffron); }
-.admin-login-btn {
-  width: 100%; padding: 0.9rem;
-  background: var(--saffron); color: var(--white);
-  border: none; font-size: 0.9rem; font-weight: 700;
-  letter-spacing: 0.1em; cursor: pointer; margin-top: 1.25rem;
-  transition: background 0.2s, transform 0.1s;
-  border-radius: 0;
+.alp-input::placeholder {
+  color: rgba(255,255,255,0.2);
+  font-family: var(--font-body);
+  letter-spacing: 0;
 }
-.admin-login-btn:hover  { background: #d45c00; }
-.admin-login-btn:active { transform: scale(0.98); }
-.admin-login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.admin-login-error {
-  margin-top: 0.75rem; padding: 0.6rem 0.85rem;
-  background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
-  color: #fca5a5; font-size: 0.82rem; border-radius: 0;
+.alp-input:focus {
+  border-color: var(--saffron);
+  background: rgba(212,175,55,0.06);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
 }
-.admin-login-hint {
-  margin-top: 1.5rem; padding-top: 1.25rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  font-size: 0.72rem; color: rgba(255,255,255,0.3);
-  text-align: center; line-height: 1.6;
+.alp-input--error {
+  border-color: rgba(239,68,68,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
+}
+.alp-toggle-pass {
+  position: absolute;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem;
+  transition: color 0.2s;
+  line-height: 1;
+}
+.alp-toggle-pass:hover { color: rgba(255,255,255,0.7); }
+
+/* Error */
+.alp-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: var(--radius-sm);
+  color: #fca5a5;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  animation: alpShake 0.4s ease;
+}
+@keyframes alpShake {
+  0%, 100% { transform: translateX(0); }
+  20%  { transform: translateX(-6px); }
+  40%  { transform: translateX(6px); }
+  60%  { transform: translateX(-4px); }
+  80%  { transform: translateX(4px); }
+}
+
+/* Submit button */
+.alp-submit {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--saffron) 0%, var(--saffron-dark) 100%);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(212,175,55,0.25);
+  position: relative;
+  overflow: hidden;
+}
+.alp-submit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+.alp-submit:hover::after { transform: translateX(100%); }
+.alp-submit:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 32px rgba(212,175,55,0.35);
+}
+.alp-submit:active:not(:disabled) { transform: scale(0.985); }
+.alp-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Hint */
+.alp-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
   font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
-.admin-login-hint strong { color: rgba(255,255,255,0.55); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .alp-root { flex-direction: column; }
+  .alp-brand { display: none; }
+  .alp-form-panel { padding: 2.5rem 1.5rem; align-items: flex-start; padding-top: 4rem; }
+  .alp-mobile-logo { display: flex; }
+  .alp-form-card { max-width: 100%; }
+}
 
 /* ── Admin Dashboard Layout ───────────────────────────────────────────────── */
 .dash-layout {

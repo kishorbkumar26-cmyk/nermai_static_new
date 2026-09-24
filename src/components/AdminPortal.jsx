@@ -1710,164 +1710,334 @@ function DriveSection({ toast }) {
   const [convertedUrl, setConvertedUrl] = useState('')
   const [passcode, setPasscode] = useState('')
   const [copiedScript, setCopiedScript] = useState(false)
+  const [showScriptCode, setShowScriptCode] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
 
-  const APPS_SCRIPT_TEMPLATE = `// @OnlyCurrentDoc false
-// NERMAI IAS Academy — Google Apps Script v3.0
-// ─────────────────────────────────────────────────────────────────────────────
-// Deploy: Extensions → Apps Script → Deploy → New Deployment → Web App
-//   • Execute as: Me   • Who has access: Anyone
-// ─────────────────────────────────────────────────────────────────────────────
+  const APPS_SCRIPT_TEMPLATE = `/**
+ * NERMAI IAS Academy — Google Apps Script Web App
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PURPOSE
+ *   Central upload endpoint for the NERMAI Static website admin panel.
+ *   Handles image uploads (with page-based folder organization) and PDF uploads,
+ *   with delete and connection-test actions.
+ *
+ * HOW TO DEPLOY
+ *   1. Go to https://script.google.com/ → New Project → paste this code
+ *   2. Click Deploy → New Deployment → Web App
+ *      • Execute as: "Me (your Google account)"
+ *      • Who has access: "Anyone" (required for CORS from browser)
+ *   3. Copy the deployment URL → paste in NERMAI Admin → Drive & Storage Settings
+ *
+ * FOLDER STRUCTURE CREATED IN GOOGLE DRIVE
+ *   [Root Folder / Specified Folder]
+ *   ├── nermai-home/            ← Hero banners, gallery, about images, etc.
+ *   ├── nermai-results/         ← Topper photos, result certificates
+ *   ├── nermai-courses/         ← Course thumbnails
+ *   ├── nermai-topbar/          ← Ticker, announcements
+ *   ├── nermai-testimonials/    ← Review / testimonial images
+ *   ├── nermai-contact/         ← Contact page images
+ *   ├── nermai-gallery/         ← Gallery section photos
+ *   ├── nermai-resources/       ← PDFs, study materials, notes
+ *   ├── nermai-why/             ← Why Nermai page images
+ *   └── nermai-misc/            ← Everything else
+ *
+ * FRONTEND REQUEST FIELDS (what driveStorage.js sends)
+ *   {
+ *     folderId:      string   — root Google Drive folder ID (optional)
+ *     subFolderName: string   — page-scoped subfolder (e.g. "nermai-hero-desktop")
+ *     filename:      string   — file name with extension
+ *     mimeType:      string   — MIME type (image/jpeg, application/pdf, etc.)
+ *     base64:        string   — base64-encoded file data (no data-URL prefix)
+ *     test:          boolean  — if true, just tests connection
+ *     action:        string   — "delete" to trash a file
+ *     fileId:        string   — required when action === "delete"
+ *     redirectLink:  string   — optional external URL to associate with the upload
+ *   }
+ *
+ * RESPONSE FIELDS
+ *   Success upload:
+ *   {
+ *     status:       "success"
+ *     fileId:       string   — Google Drive file ID
+ *     url:          string   — CDN thumbnail URL  (lh3.googleusercontent.com)
+ *     viewUrl:      string   — Drive shareable view link
+ *     directUrl:    string   — drive.google.com/uc?export=view link
+ *     previewUrl:   string   — Embeddable preview URL (iframes / PDFs)
+ *     downloadUrl:  string   — Direct download URL
+ *     redirectLink: string   — Echoed back if provided by caller
+ *     mimeType:     string   — File MIME type
+ *     isPdf:        boolean  — true if the file is a PDF
+ *     fileName:     string   — Stored file name
+ *     folder:       string   — Subfolder the file was stored in
+ *   }
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
 
-// Page → Drive subfolder mapping (images are organised by section)
+// @OnlyCurrentDoc false
+
+/* ──────────────────────────────────────────────────────────────────────────────
+ * PAGE → SUBFOLDER MAP
+ * Maps frontend subFolderName prefixes to organised Drive subdirectories.
+ * The lookup is prefix-based, so "nermai-hero-desktop" maps to "nermai-home".
+ * ────────────────────────────────────────────────────────────────────────────*/
 var PAGE_FOLDER_MAP = {
-  "nermai-hero":         "nermai-home",
-  "nermai-home":         "nermai-home",
-  "nermai-about":        "nermai-home",
-  "nermai-gallery":      "nermai-gallery",
-  "nermai-results":      "nermai-results",
-  "nermai-toppers":      "nermai-results",
-  "nermai-topper":       "nermai-results",
-  "nermai-success":      "nermai-results",
-  "nermai-courses":      "nermai-courses",
-  "nermai-course":       "nermai-courses",
-  "nermai-testimonials": "nermai-testimonials",
-  "nermai-reviews":      "nermai-testimonials",
-  "nermai-topbar":       "nermai-topbar",
-  "nermai-contact":      "nermai-contact",
-  "nermai-resources":    "nermai-resources",
-  "nermai-pdfs":         "nermai-resources",
-  "nermai-materials":    "nermai-resources",
-  "nermai-why":          "nermai-why"
-};
+  'nermai-hero':         'nermai-home',
+  'nermai-home':         'nermai-home',
+  'nermai-about':        'nermai-home',
+  'nermai-gallery':      'nermai-gallery',
+  'nermai-results':      'nermai-results',
+  'nermai-toppers':      'nermai-results',
+  'nermai-topper':       'nermai-results',
+  'nermai-success':      'nermai-results',
+  'nermai-courses':      'nermai-courses',
+  'nermai-course':       'nermai-courses',
+  'nermai-testimonials': 'nermai-testimonials',
+  'nermai-reviews':      'nermai-testimonials',
+  'nermai-topbar':       'nermai-topbar',
+  'nermai-contact':      'nermai-contact',
+  'nermai-resources':    'nermai-resources',
+  'nermai-pdfs':         'nermai-resources',
+  'nermai-materials':    'nermai-resources',
+  'nermai-why':          'nermai-why',
+  'nermai-why-nermai':   'nermai-why'
+}
 
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Helper: sanitise a folder/file name (remove Drive-illegal chars)
+ * ────────────────────────────────────────────────────────────────────────────*/
 function sanitiseName(name, maxLen) {
-  if (!name) return "";
-  var safe = name.toString().replace(/[\\//:*?"<>|]/g, "").trim();
-  return maxLen ? safe.substring(0, maxLen) : safe;
+  if (!name) return ''
+  var safe = name.toString().replace(/[\\/:*?"<>|]/g, '').trim()
+  return maxLen ? safe.substring(0, maxLen) : safe
 }
 
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Helper: resolve (or create) a named subfolder inside a parent folder.
+ * ────────────────────────────────────────────────────────────────────────────*/
 function getOrCreateSubfolder(parentFolder, subName) {
-  var it = parentFolder.getFoldersByName(subName);
-  if (it.hasNext()) return it.next();
-  var f = parentFolder.createFolder(subName);
-  try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
-  return f;
+  var it = parentFolder.getFoldersByName(subName)
+  if (it.hasNext()) return it.next()
+  var newFolder = parentFolder.createFolder(subName)
+  try {
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+  } catch (e) { /* domain restriction — inherits parent */ }
+  return newFolder
 }
 
-function getRootFolder(rawId) {
-  var id = (rawId || "").toString().trim();
-  var match = id.match(/[-\\w]{25,}/);
-  var clean = match ? match[0] : id;
-  if (clean) { try { return DriveApp.getFolderById(clean); } catch(e){} }
-  return DriveApp.getRootFolder();
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Helper: resolve the root Drive folder from a folderId (URL or bare ID)
+ * ────────────────────────────────────────────────────────────────────────────*/
+function getRootFolder(rawFolderId) {
+  var id = (rawFolderId || '').toString().trim()
+  // Accept full URLs like https://drive.google.com/drive/folders/FOLDER_ID
+  var match = id.match(/[-\\w]{25,}/)
+  var cleanId = match ? match[0] : id
+  if (cleanId) {
+    try { return DriveApp.getFolderById(cleanId) } catch (e) { /* fall through */ }
+  }
+  return DriveApp.getRootFolder()
 }
 
-function resolveTargetFolder(rootFolder, rawSub) {
-  var sub = sanitiseName(rawSub, 80);
-  if (!sub) return rootFolder;
-  var bucket = "nermai-misc";
-  var longestMatch = 0;
-  var keys = Object.keys(PAGE_FOLDER_MAP);
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Helper: resolve the target folder for a given subFolderName.
+ *
+ * Logic:
+ *   1. Map the subFolderName prefix to a page-level bucket (nermai-home, etc.)
+ *   2. Create/reuse that page bucket inside the root.
+ *   3. If the original subFolderName is MORE specific than the bucket
+ *      (e.g. "nermai-hero-desktop"), create a further nested folder inside.
+ * ────────────────────────────────────────────────────────────────────────────*/
+function resolveTargetFolder(rootFolder, rawSubFolderName) {
+  var sub = sanitiseName(rawSubFolderName, 80)
+  if (!sub) return rootFolder  // No subfolder — upload to root
+
+  // Find longest matching prefix
+  var pageBucket = 'nermai-misc'  // default catch-all bucket
+  var longestMatch = 0
+  var keys = Object.keys(PAGE_FOLDER_MAP)
   for (var i = 0; i < keys.length; i++) {
-    var prefix = keys[i];
+    var prefix = keys[i]
     if (sub === prefix || sub.indexOf(prefix) === 0) {
-      if (prefix.length > longestMatch) { longestMatch = prefix.length; bucket = PAGE_FOLDER_MAP[prefix]; }
+      if (prefix.length > longestMatch) {
+        longestMatch = prefix.length
+        pageBucket = PAGE_FOLDER_MAP[prefix]
+      }
     }
   }
-  var bucketFolder = getOrCreateSubfolder(rootFolder, bucket);
-  return (sub !== bucket) ? getOrCreateSubfolder(bucketFolder, sub) : bucketFolder;
+
+  // Level 1: page bucket (e.g. nermai-home)
+  var bucketFolder = getOrCreateSubfolder(rootFolder, pageBucket)
+
+  // Level 2: exact subFolderName folder (e.g. nermai-hero-desktop)
+  // Only create if it differs from the bucket itself
+  if (sub !== pageBucket) {
+    return getOrCreateSubfolder(bucketFolder, sub)
+  }
+  return bucketFolder
 }
 
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Helper: build all relevant URL variants from a Drive file ID + MIME type
+ * ────────────────────────────────────────────────────────────────────────────*/
 function buildFileUrls(fileId, mimeType) {
-  var isPdf = mimeType === "application/pdf";
-  var isImg = (mimeType || "").indexOf("image/") === 0;
+  var isPdf = mimeType === 'application/pdf'
+  var isImage = (mimeType || '').indexOf('image/') === 0
+
   return {
-    url:         isImg ? "https://lh3.googleusercontent.com/d/" + fileId + "=w1600"
-                       : "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w800",
-    viewUrl:     "https://drive.google.com/file/d/" + fileId + "/view",
-    directUrl:   "https://drive.google.com/uc?export=view&id=" + fileId,
-    previewUrl:  "https://drive.google.com/file/d/" + fileId + "/preview",
-    downloadUrl: "https://drive.google.com/uc?export=download&id=" + fileId,
-    isPdf: isPdf, mimeType: mimeType || ""
-  };
+    // CDN thumbnail — fastest for images; falls back to Drive preview for PDFs
+    url:         isImage
+                   ? 'https://lh3.googleusercontent.com/d/' + fileId + '=w1600'
+                   : 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800',
+
+    // Human-readable shareable link
+    viewUrl:     'https://drive.google.com/file/d/' + fileId + '/view',
+
+    // Direct download link (works for both images and PDFs)
+    directUrl:   'https://drive.google.com/uc?export=view&id=' + fileId,
+
+    // Embeddable iframe-safe preview (great for PDFs in <iframe> and images)
+    previewUrl:  'https://drive.google.com/file/d/' + fileId + '/preview',
+
+    // Force-download link
+    downloadUrl: 'https://drive.google.com/uc?export=download&id=' + fileId,
+
+    isPdf: isPdf,
+    mimeType: mimeType || ''
+  }
 }
 
-function jsonOut(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
-
+/* ──────────────────────────────────────────────────────────────────────────────
+ * doGet — simple liveness probe (used by browser & curl health checks)
+ * ────────────────────────────────────────────────────────────────────────────*/
 function doGet(e) {
-  return jsonOut({ status: "success", app: "NERMAI Drive Service v3.0", message: "Web App is active!" });
+  return ContentService.createTextOutput(JSON.stringify({
+    status:  'success',
+    app:     'NERMAI IAS Academy — Drive Upload Service',
+    version: '3.0',
+    message: 'Web App is active and ready to receive uploads!'
+  })).setMimeType(ContentService.MimeType.JSON)
 }
 
+/* ──────────────────────────────────────────────────────────────────────────────
+ * doPost — main entry point
+ * ────────────────────────────────────────────────────────────────────────────*/
 function doPost(e) {
   try {
-    if (!e || !e.postData || !e.postData.contents)
-      return jsonOut({ status: "error", message: "No POST payload received" });
+    /* ── 1. Parse payload ────────────────────────────────────────────── */
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonOut({ status: 'error', message: 'No POST payload received' })
+    }
 
-    var data;
-    try { data = JSON.parse(e.postData.contents); }
-    catch(pe) { return jsonOut({ status: "error", message: "Invalid JSON: " + pe.toString() }); }
+    var data
+    try {
+      data = JSON.parse(e.postData.contents)
+    } catch (parseErr) {
+      return jsonOut({ status: 'error', message: 'Invalid JSON: ' + parseErr.toString() })
+    }
 
-    // Accept both folderId (frontend) and rootFolderId (LMS reference)
-    var rootFolder = getRootFolder(data.folderId || data.rootFolderId || "");
+    /* ── 2. Resolve root folder ──────────────────────────────────────── */
+    // Frontend sends { folderId } — same key used in the LMS reference script
+    var rootFolder = getRootFolder(data.folderId || data.rootFolderId || '')
 
-    // ── ACTION: test connection
+    /* ── 3. ACTION: test connection ──────────────────────────────────── */
     if (data.test) {
       return jsonOut({
-        status: "success",
-        message: "Google Drive connected! Folder: \\"" + rootFolder.getName() + "\\"",
+        status:     'success',
+        message:    'Google Drive connected successfully! Folder: "' + rootFolder.getName() + '"',
         folderName: rootFolder.getName(),
         folderId:   rootFolder.getId()
-      });
+      })
     }
 
-    // ── ACTION: delete file
-    if (data.action === "delete") {
-      if (!data.fileId) return jsonOut({ status: "error", message: "fileId required for delete" });
+    /* ── 4. ACTION: delete file ──────────────────────────────────────── */
+    if (data.action === 'delete') {
+      if (!data.fileId) {
+        return jsonOut({ status: 'error', message: 'fileId is required for delete action' })
+      }
       try {
-        DriveApp.getFileById(data.fileId).setTrashed(true);
-        return jsonOut({ status: "success", message: "File deleted", fileId: data.fileId });
-      } catch(de) { return jsonOut({ status: "error", message: "Delete failed: " + de.toString() }); }
+        var toDelete = DriveApp.getFileById(data.fileId)
+        toDelete.setTrashed(true)
+        return jsonOut({ status: 'success', message: 'File deleted (trashed) successfully', fileId: data.fileId })
+      } catch (delErr) {
+        return jsonOut({ status: 'error', message: 'Delete failed: ' + delErr.toString() })
+      }
     }
 
-    // ── ACTION: upload file
-    if (!data.base64) return jsonOut({ status: "error", message: '"base64" field required' });
+    /* ── 5. ACTION: upload file ──────────────────────────────────────── */
+    // Validate required fields
+    if (!data.base64) {
+      return jsonOut({ status: 'error', message: '"base64" field is required for uploads' })
+    }
 
-    var mimeType = (data.mimeType || "image/jpeg").toString().trim();
+    var mimeType  = (data.mimeType  || 'image/jpeg').toString().trim()
     // Accept both "filename" (frontend) and "fileName" (LMS reference)
-    var fileName = sanitiseName(data.filename || data.fileName || ("upload_" + Date.now()), 200);
-    if (mimeType === "application/pdf" && fileName.indexOf(".") === -1) fileName += ".pdf";
+    var fileName  = sanitiseName(data.filename || data.fileName || ('upload_' + Date.now()), 200)
+    var isPdf     = mimeType === 'application/pdf'
 
-    var targetFolder = resolveTargetFolder(rootFolder, (data.subFolderName || data.subPath || "").toString());
-    var decoded = Utilities.base64Decode(data.base64);
-    var file    = targetFolder.createFile(Utilities.newBlob(decoded, mimeType, fileName));
+    // For PDFs with no extension, append .pdf
+    if (isPdf && fileName.indexOf('.') === -1) {
+      fileName = fileName + '.pdf'
+    }
 
-    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(se){}
+    // Resolve the correct subfolder (page-based organisation)
+    var rawSub       = (data.subFolderName || data.subPath || '').toString()
+    var targetFolder = resolveTargetFolder(rootFolder, rawSub)
 
-    var fileId = file.getId();
-    var urls   = buildFileUrls(fileId, mimeType);
+    // Decode base64 and create the file
+    var decoded = Utilities.base64Decode(data.base64)
+    var blob    = Utilities.newBlob(decoded, mimeType, fileName)
+    var file    = targetFolder.createFile(blob)
 
+    // Grant public view access (best-effort; silently skips on domain-restricted accounts)
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)
+    } catch (shareErr) { /* domain restriction — folder-level sharing applies */ }
+
+    var fileId = file.getId()
+    var urls   = buildFileUrls(fileId, mimeType)
+
+    /* ── 6. Compose response ─────────────────────────────────────────── */
+    var response = {
+      status:       'success',
+      fileId:       fileId,
+      fileName:     fileName,
+      folder:       targetFolder.getName(),
+
+      // Primary URL (CDN for images, thumbnail for PDFs)
+      url:          urls.url,
+
+      // All access modes
+      viewUrl:      urls.viewUrl,
+      directUrl:    urls.directUrl,
+      previewUrl:   urls.previewUrl,
+      downloadUrl:  urls.downloadUrl,
+
+      // Flags
+      isPdf:        urls.isPdf,
+      mimeType:     mimeType,
+
+      // Secondary redirect link: echo back if caller supplied one,
+      // otherwise default to the Drive view link
+      redirectLink: (data.redirectLink || '').toString().trim() || urls.viewUrl
+    }
+
+    return jsonOut(response)
+
+  } catch (err) {
     return jsonOut({
-      status:      "success",
-      fileId:      fileId,
-      fileName:    fileName,
-      folder:      targetFolder.getName(),
-      url:         urls.url,
-      viewUrl:     urls.viewUrl,
-      directUrl:   urls.directUrl,
-      previewUrl:  urls.previewUrl,
-      downloadUrl: urls.downloadUrl,
-      isPdf:       urls.isPdf,
-      mimeType:    mimeType,
-      // Secondary redirect link — echoes caller value or defaults to viewUrl
-      redirectLink: (data.redirectLink || "").toString().trim() || urls.viewUrl
-    });
-
-  } catch(err) {
-    return jsonOut({ status: "error", message: err.toString() });
+      status:  'error',
+      message: err.toString()
+    })
   }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+ * Utility: wrap an object as a JSON ContentService response
+ * ────────────────────────────────────────────────────────────────────────────*/
+function jsonOut(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON)
 }`
 
   const handleCopyScript = () => {
@@ -1980,32 +2150,139 @@ function doPost(e) {
         </div>
       </div>
 
-      {/* 3-Step Setup Guide */}
-      <div className="ap-card">
-        <div style={{ fontWeight: 700, color: 'var(--ink)', marginBottom: '0.75rem' }}>
-          <i className="fa-solid fa-book-open" style={{ color: 'var(--maroon)', marginRight: '8px' }}></i>
-          How to Setup Google Drive Auto-Upload (3 Minutes):
+      {/* Google Apps Script Deployment Info Card */}
+      <div className="ap-card" style={{ borderLeft: '4px solid #4285F4', background: '#fafbff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: 36, height: 36, borderRadius: '8px', background: 'rgba(66, 133, 244, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4285F4', fontSize: '1.2rem' }}>
+              <i className="fa-solid fa-code"></i>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: '0.98rem' }}>
+                Google Apps Script — Deployment Guide &amp; Code
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                Follow these 4 simple steps to connect Google Drive storage with auto-folder organization
+              </div>
+            </div>
+          </div>
+          <button
+            className="ap-btn ap-btn-primary"
+            onClick={handleCopyScript}
+            style={{ fontSize: '0.82rem', padding: '0.5rem 1rem', background: copiedScript ? '#16a34a' : '#4285F4', borderColor: copiedScript ? '#16a34a' : '#4285F4' }}
+          >
+            <i className={`fa-solid ${copiedScript ? 'fa-check' : 'fa-copy'}`}></i>
+            {copiedScript ? ' Copied Script!' : ' Copy Script Code'}
+          </button>
         </div>
 
-        <div style={{ fontSize: '0.82rem', color: 'var(--ink)', lineHeight: 1.6 }}>
-          <ol style={{ paddingLeft: '1.25rem', margin: '0.5rem 0' }}>
-            <li>Go to <a href="https://script.google.com/home/start" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--maroon)', fontWeight: 700, textDecoration: 'underline' }}>Google Apps Script</a> and click <strong>New Project</strong>.</li>
-            <li>Delete any code in the editor, click <strong>"Copy Apps Script Code"</strong> below, and paste it into the editor.</li>
-            <li>Click <strong>Deploy → New deployment</strong> (top right). Select type <strong>Web app</strong>:
-              <ul style={{ paddingLeft: '1.25rem', marginTop: '0.25rem' }}>
-                <li>Description: <code>Nermai Image Uploader</code></li>
-                <li>Execute as: <strong>Me (your email)</strong></li>
-                <li>Who has access: <strong>Anyone</strong> (critical for browser upload)</li>
-              </ul>
-            </li>
-            <li>Click <strong>Deploy</strong>, authorize the permissions, and copy the <strong>Web App URL</strong> ending in <code>/exec</code> into the field above!</li>
-          </ol>
+        {/* Step-by-Step Instructions */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', marginBottom: '4px' }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>1</span>
+              Create Project
+            </div>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b', lineHeight: 1.45 }}>
+              Open <a href="https://script.google.com/home/start" target="_blank" rel="noopener noreferrer" style={{ color: '#4285F4', fontWeight: 600, textDecoration: 'underline' }}>Google Apps Script</a> and click <strong>New Project</strong>. Clear any existing code in <code>Code.gs</code>.
+            </p>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', marginBottom: '4px' }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>2</span>
+              Paste Script
+            </div>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b', lineHeight: 1.45 }}>
+              Click <strong>"Copy Script Code"</strong> and paste the entire script into the <code>Code.gs</code> editor, then save (<kbd>Ctrl+S</kbd>).
+            </p>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', marginBottom: '4px' }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>3</span>
+              Deploy as Web App
+            </div>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b', lineHeight: 1.45 }}>
+              Click <strong>Deploy → New deployment</strong> (blue button). Select type <strong>Web App</strong> (⚙️):<br />
+              • Execute as: <strong>Me (your account)</strong><br />
+              • Who has access: <strong>Anyone</strong>
+            </p>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem 1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#1e293b', fontSize: '0.82rem', marginBottom: '4px' }}>
+              <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem' }}>4</span>
+              Paste &amp; Save
+            </div>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b', lineHeight: 1.45 }}>
+              Authorize permissions, copy the <strong>Web App URL</strong> (ending in <code>/exec</code>), paste it into <strong>Apps Script Web App URL</strong> above, and click <strong>Save Drive Config</strong>.
+            </p>
+          </div>
         </div>
 
-        <button className="ap-btn ap-btn-outline" onClick={handleCopyScript} style={{ marginTop: '0.75rem' }}>
-          <i className={`fa-solid ${copiedScript ? 'fa-check' : 'fa-copy'}`}></i>
-          {copiedScript ? ' Copied Script to Clipboard!' : ' Copy Google Apps Script Code'}
-        </button>
+        {/* Automatic Folders Created */}
+        <div style={{ background: '#f1f5f9', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <i className="fa-solid fa-folder-tree" style={{ color: '#4285F4' }}></i>
+            Automatic Folder Organization in Google Drive:
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.72rem' }}>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-home/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-results/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-courses/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-topbar/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-testimonials/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-contact/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-gallery/</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-resources/ (PDFs)</span>
+            <span style={{ background: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#475569' }}>📁 nermai-why/</span>
+          </div>
+        </div>
+
+        {/* Expandable Code Box */}
+        <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: '#0f172a' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 1rem', background: '#1e293b', borderBottom: '1px solid #334155' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }}></span>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }}></span>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }}></span>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: '6px', fontFamily: 'monospace' }}>Code.gs (Apps Script v3.0)</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setShowScriptCode(!showScriptCode)}
+                style={{ background: 'transparent', border: '1px solid #475569', color: '#cbd5e1', padding: '3px 10px', borderRadius: '4px', fontSize: '0.72rem', cursor: 'pointer' }}
+              >
+                <i className={`fa-solid ${showScriptCode ? 'fa-eye-slash' : 'fa-eye'}`} style={{ marginRight: '4px' }}></i>
+                {showScriptCode ? 'Hide Code' : 'View Code Snippet'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyScript}
+                style={{ background: copiedScript ? '#16a34a' : '#3b82f6', border: 'none', color: '#fff', padding: '3px 10px', borderRadius: '4px', fontSize: '0.72rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <i className={`fa-solid ${copiedScript ? 'fa-check' : 'fa-copy'}`}></i>
+                {copiedScript ? 'Copied!' : 'Copy Code'}
+              </button>
+            </div>
+          </div>
+
+          {showScriptCode && (
+            <pre style={{ margin: 0, padding: '1rem', maxHeight: '340px', overflowY: 'auto', fontSize: '0.72rem', color: '#e2e8f0', fontFamily: 'Consolas, Monaco, monospace', lineHeight: 1.5, background: '#090d16' }}>
+              <code>{APPS_SCRIPT_TEMPLATE}</code>
+            </pre>
+          )}
+        </div>
+
+        {/* Main Copy Action Bar */}
+        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+          <button className="ap-btn ap-btn-primary" onClick={handleCopyScript} style={{ background: copiedScript ? '#16a34a' : '#4285F4', borderColor: copiedScript ? '#16a34a' : '#4285F4' }}>
+            <i className={`fa-solid ${copiedScript ? 'fa-check' : 'fa-copy'}`}></i>
+            {copiedScript ? ' Full Script Copied to Clipboard!' : ' Copy Full Google Apps Script Code'}
+          </button>
+        </div>
       </div>
 
       {/* Drive URL Converter */}
