@@ -104,37 +104,55 @@ export default function AdminImageUpload({
   }
 
   // ─── Preview strategy ────────────────────────────────────────────────────────
-  // Root cause of "Preview unavailable": lh3.googleusercontent.com URLs require
-  // the Google Drive file to be publicly shared. If it's private, ALL CDN fallbacks
-  // fail (they all go through the same auth layer).
+  // Files ARE publicly shared (Apps Script calls setSharing). The issue is:
+  // lh3.googleusercontent.com CDN rate-limits requests, causing 403s.
   //
-  // FIX: For Drive files, use /preview iframe directly (Google's own viewer).
-  // It works regardless of CDN rate limits or file sharing settings.
-  // For non-Drive URLs: use <img> as normal.
+  // FIX: Use drive.google.com/thumbnail (separate bucket, generous limit) first.
+  // If that fails → try lh3 CDN. If that fails → use iframe /preview as fallback.
   const driveId = extractGoogleDriveId(value)
   const isDriveLink = !!driveId
   const isBase64 = typeof value === 'string' && value.startsWith('data:')
 
-  // 'iframe' → Google Drive embed  |  'img' → direct img  |  'error' → fallback
-  const [previewMode, setPreviewMode] = useState(() => driveId ? 'iframe' : 'img')
-  const [imgSrc, setImgSrc]           = useState(() => driveStorage.formatImageUrl(value) || value)
-  const [imgRetry, setImgRetry]       = useState(0)
+  const DRIVE_PREVIEW_CHAIN = (id) => [
+    `https://drive.google.com/thumbnail?id=${id}&sz=w300`,       // ① thumbnail API (separate rate-limit)
+    `https://drive.google.com/thumbnail?id=${id}&sz=w600`,       // ② thumbnail larger
+    `https://lh3.googleusercontent.com/d/${id}=w400`,            // ③ CDN normal
+    `https://lh3.googleusercontent.com/u/0/d/${id}=w400`,        // ④ CDN alt path
+    `https://drive.usercontent.google.com/download?id=${id}&export=view`, // ⑤ usercontent
+  ]
 
-  // Reset when value changes
+  const getInitialSrc = () => {
+    if (driveId) return DRIVE_PREVIEW_CHAIN(driveId)[0]
+    return driveStorage.formatImageUrl(value) || value
+  }
+
+  // 'img' = show <img>, 'iframe' = show Drive /preview embed
+  const [previewMode, setPreviewMode] = useState(() => 'img')
+  const [imgSrc, setImgSrc]           = useState(getInitialSrc)
+  const [imgStep, setImgStep]         = useState(0)
+
   useEffect(() => {
     setImgError(false)
-    setPreviewMode(driveId ? 'iframe' : 'img')
-    setImgSrc(driveStorage.formatImageUrl(value) || value)
-    setImgRetry(0)
+    setPreviewMode('img')
+    setImgSrc(getInitialSrc())
+    setImgStep(0)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   let testUrl = value
   if (driveId) testUrl = `https://drive.google.com/file/d/${driveId}/view`
 
-  // For non-Drive img fallback chain
   const handleImgError = () => {
-    setImgError(true)
+    if (!driveId) { setImgError(true); return }
+    const chain = DRIVE_PREVIEW_CHAIN(driveId)
+    const next = imgStep + 1
+    if (next < chain.length) {
+      setImgStep(next)
+      setImgSrc(chain[next])
+    } else {
+      // All img URLs failed → last resort: Drive /preview iframe
+      setPreviewMode('iframe')
+    }
   }
 
   const handleSwitchToIframe = () => {
