@@ -75,14 +75,15 @@ export function extractGoogleDriveId(urlOrId) {
 export function getGoogleDriveCDNUrl(urlOrId, width = 1000) {
   const fileId = extractGoogleDriveId(urlOrId)
   if (!fileId) return urlOrId
-  const sizeParam = width && width > 0 ? `=w${width}` : '=s0'
-  return `https://lh3.googleusercontent.com/d/${fileId}${sizeParam}`
+  // Use thumbnail API — more stable, separate rate-limit from lh3 CDN
+  // lh3.googleusercontent.com gets rate-limited under load; thumbnail API does not
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${width}`
 }
 
 export function getGoogleDriveDirectUrl(urlOrId) {
   const fileId = extractGoogleDriveId(urlOrId)
   if (!fileId) return urlOrId
-  return `https://lh3.googleusercontent.com/d/${fileId}`
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
 }
 
 export function handleImageError(event, fallbackUrl = '') {
