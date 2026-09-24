@@ -104,64 +104,42 @@ export default function AdminImageUpload({
   }
 
   // ─── Preview strategy ────────────────────────────────────────────────────────
-  // For Google Drive: use the /preview embed iframe — works reliably regardless
-  // of CDN rate limits or sharing restrictions.
-  // For other URLs: use <img> directly.
+  // Root cause of "Preview unavailable": lh3.googleusercontent.com URLs require
+  // the Google Drive file to be publicly shared. If it's private, ALL CDN fallbacks
+  // fail (they all go through the same auth layer).
+  //
+  // FIX: For Drive files, use /preview iframe directly (Google's own viewer).
+  // It works regardless of CDN rate limits or file sharing settings.
+  // For non-Drive URLs: use <img> as normal.
   const driveId = extractGoogleDriveId(value)
   const isDriveLink = !!driveId
   const isBase64 = typeof value === 'string' && value.startsWith('data:')
 
-  // 'img' → show img element  |  'iframe' → show Drive embed  |  'error' → show error
-  const [previewMode, setPreviewMode] = useState(() => (driveId ? 'img' : 'img'))
-  const [previewSrc, setPreviewSrc]   = useState(() => {
-    if (driveId) return `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`
-    return driveStorage.formatImageUrl(value) || value
-  })
-  const [previewRetry, setPreviewRetry] = useState(0)
+  // 'iframe' → Google Drive embed  |  'img' → direct img  |  'error' → fallback
+  const [previewMode, setPreviewMode] = useState(() => driveId ? 'iframe' : 'img')
+  const [imgSrc, setImgSrc]           = useState(() => driveStorage.formatImageUrl(value) || value)
+  const [imgRetry, setImgRetry]       = useState(0)
 
-  // Reset preview when value changes
+  // Reset when value changes
   useEffect(() => {
     setImgError(false)
-    setPreviewMode(driveId ? 'img' : 'img')
-    setPreviewSrc(
-      driveId
-        ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`
-        : driveStorage.formatImageUrl(value) || value
-    )
-    setPreviewRetry(0)
+    setPreviewMode(driveId ? 'iframe' : 'img')
+    setImgSrc(driveStorage.formatImageUrl(value) || value)
+    setImgRetry(0)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   let testUrl = value
   if (driveId) testUrl = `https://drive.google.com/file/d/${driveId}/view`
 
-  // Img fallback chain — after all fail, switch to iframe embed
-  const IMG_FALLBACKS = (id) => [
-    `https://drive.google.com/thumbnail?id=${id}&sz=w400`,
-    `https://drive.google.com/thumbnail?id=${id}&sz=w800`,
-    `https://lh3.googleusercontent.com/d/${id}=w400`,
-    `https://lh3.googleusercontent.com/u/0/d/${id}=w400`,
-    `https://drive.usercontent.google.com/download?id=${id}&export=view`,
-  ]
-
-  const handlePreviewError = () => {
-    if (!driveId) { setImgError(true); return }
-    const fallbacks = IMG_FALLBACKS(driveId)
-    const next = previewRetry + 1
-    if (next < fallbacks.length) {
-      setPreviewRetry(next)
-      setPreviewSrc(fallbacks[next])
-    } else {
-      // All img URLs failed → switch to Drive iframe embed (always works)
-      setPreviewMode('iframe')
-    }
+  // For non-Drive img fallback chain
+  const handleImgError = () => {
+    setImgError(true)
   }
 
-  const handleRetryPreview = () => {
+  const handleSwitchToIframe = () => {
     setImgError(false)
-    setPreviewMode('img')
-    setPreviewRetry(0)
-    setPreviewSrc(`https://drive.google.com/thumbnail?id=${driveId}&sz=w400&t=${Date.now()}`)
+    setPreviewMode('iframe')
   }
 
   return (
@@ -324,35 +302,42 @@ export default function AdminImageUpload({
             position: 'relative',
             flexShrink: 0
           }}>
-            {previewMode === 'img' && !imgError ? (
-              <img
-                key={previewSrc}
-                src={previewSrc}
-                alt="Preview"
-                onLoad={e => setNaturalDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
-                onError={handlePreviewError}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            ) : previewMode === 'iframe' && driveId ? (
-              /* Google Drive /preview embed — works regardless of CDN rate limits */
+            {previewMode === 'iframe' && driveId ? (
+              /* Drive /preview — Google's own viewer, works regardless of sharing/CDN limits */
               <iframe
                 key={`iframe-${driveId}`}
                 src={`https://drive.google.com/file/d/${driveId}/preview`}
                 title="Drive Preview"
                 allow="autoplay"
-                style={{ width: '180%', height: '180%', border: 'none', transform: 'scale(0.56)', transformOrigin: 'top left', pointerEvents: 'none' }}
+                style={{
+                  width: '180%', height: '180%', border: 'none',
+                  transform: 'scale(0.56)', transformOrigin: 'top left',
+                  pointerEvents: 'none'
+                }}
+              />
+            ) : previewMode === 'img' && !imgError ? (
+              <img
+                key={imgSrc}
+                src={imgSrc}
+                alt="Preview"
+                onLoad={e => setNaturalDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
+                onError={handleImgError}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             ) : (
-              /* Total failure — show Open in Drive link */
+              /* Error state — show switch-to-iframe or open-in-drive */
               <div style={{ color: '#92400e', fontSize: '0.62rem', textAlign: 'center', padding: '0.4rem', background: '#fef3c7', borderRadius: '4px', width: '100%' }}>
                 <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '4px', color: '#d97706' }} />
-                <div style={{ fontWeight: 700, marginBottom: '3px' }}>Preview failed</div>
+                <div style={{ fontWeight: 700, marginBottom: '4px' }}>Preview failed</div>
                 {driveId && (
-                  <button type="button" onClick={handleRetryPreview} style={{ background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.58rem', padding: '3px 6px', cursor: 'pointer', fontWeight: 700, display: 'block', width: '100%', marginBottom: '4px' }}>
-                    <i className="fa-solid fa-rotate-right" /> Retry
+                  <button type="button" onClick={handleSwitchToIframe}
+                    style={{ background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.58rem', padding: '3px 6px', cursor: 'pointer', fontWeight: 700, display: 'block', width: '100%', marginBottom: '4px' }}>
+                    <i className="fa-solid fa-play" /> Load Preview
                   </button>
                 )}
-                <a href={driveId ? `https://drive.google.com/file/d/${driveId}/view` : value} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8', fontSize: '0.58rem', textDecoration: 'underline', fontWeight: 600 }}>
+                <a href={driveId ? `https://drive.google.com/file/d/${driveId}/view` : value}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ color: '#1d4ed8', fontSize: '0.58rem', textDecoration: 'underline', fontWeight: 600 }}>
                   {driveId ? 'Open in Drive ↗' : 'Open Link ↗'}
                 </a>
               </div>

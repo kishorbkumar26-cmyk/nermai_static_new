@@ -1943,6 +1943,15 @@ function doPost(e) {
           <div style={{ fontSize: '0.72rem', color: 'var(--gray-400)', marginTop: '4px' }}>
             Google Apps Script → Deploy → New deployment → Web app → Execute as: <strong>Me</strong>, Access: <strong>Anyone</strong>
           </div>
+          {/* ⚠️ Critical: Apps Script must set file sharing to public */}
+          <div style={{ marginTop: '8px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: '6px', padding: '8px 10px', fontSize: '0.75rem', color: '#713f12' }}>
+            <strong>⚠️ Important — your Apps Script must make uploaded files public.</strong><br />
+            Add this line inside your Apps Script after uploading the file:<br />
+            <code style={{ display: 'block', marginTop: '4px', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.72rem', wordBreak: 'break-all' }}>
+              {'DriveApp.getFileById(file.getId()).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW)'}
+            </code>
+            <span style={{ color: '#92400e', marginTop: '4px', display: 'block' }}>Without this, images will be private and won't load on the website.</span>
+          </div>
         </div>
 
         <div className="ap-form-row">
