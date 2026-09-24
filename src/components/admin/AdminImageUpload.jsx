@@ -103,43 +103,62 @@ export default function AdminImageUpload({
     setNaturalDims(null)
   }
 
-  // Format preview URL
-  const previewUrl = driveStorage.formatImageUrl(value) || value
+  // ─── Preview URL: use Google Drive Thumbnail API first (separate rate-limit bucket)
+  // This avoids the CDN rate limit that affects lh3.googleusercontent.com
   const driveId = extractGoogleDriveId(value)
   const isDriveLink = !!driveId
   const isBase64 = typeof value === 'string' && value.startsWith('data:')
+
+  // For Drive links: start with thumbnail API (most reliable for admin previews)
+  // For regular URLs: use as-is
+  const getInitialPreviewUrl = () => {
+    if (driveId) return `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`
+    return driveStorage.formatImageUrl(value) || value
+  }
+
+  const [previewSrc, setPreviewSrc] = useState(getInitialPreviewUrl)
+  const [previewRetry, setPreviewRetry] = useState(0)
+
+  // Reset preview when value changes
+  useEffect(() => {
+    setImgError(false)
+    setPreviewSrc(getInitialPreviewUrl())
+    setPreviewRetry(0)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
 
   let testUrl = value
   if (driveId) {
     testUrl = `https://drive.google.com/file/d/${driveId}/view`
   }
 
+  // 6-step fallback chain for Drive previews, ordered by rate-limit reliability
+  const DRIVE_FALLBACKS = (id) => [
+    `https://drive.google.com/thumbnail?id=${id}&sz=w400`,           // 0 — thumbnail API
+    `https://drive.google.com/thumbnail?id=${id}&sz=w800`,           // 1 — thumbnail larger
+    `https://lh3.googleusercontent.com/d/${id}=w400`,                // 2 — CDN small
+    `https://lh3.googleusercontent.com/u/0/d/${id}=w400`,            // 3 — CDN alt path
+    `https://drive.usercontent.google.com/download?id=${id}&export=view`, // 4 — usercontent
+    `https://drive.google.com/uc?id=${id}&export=view`,              // 5 — legacy uc
+  ]
+
   const handlePreviewError = (e) => {
-    const imgEl = e.target
-    if (driveId) {
-      const step = imgEl.dataset.fallbackStep || '0'
-      if (step === '0') {
-        imgEl.dataset.fallbackStep = '1'
-        imgEl.src = `https://lh3.googleusercontent.com/u/0/d/${driveId}=w800`
-        return
-      }
-      if (step === '1') {
-        imgEl.dataset.fallbackStep = '2'
-        imgEl.src = `https://drive.google.com/uc?id=${driveId}&export=view`
-        return
-      }
-      if (step === '2') {
-        imgEl.dataset.fallbackStep = '3'
-        imgEl.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`
-        return
-      }
-      if (step === '3') {
-        imgEl.dataset.fallbackStep = '4'
-        imgEl.src = `https://drive.usercontent.google.com/download?id=${driveId}&export=view`
-        return
-      }
+    if (!driveId) { setImgError(true); return }
+    const fallbacks = DRIVE_FALLBACKS(driveId)
+    const nextStep = previewRetry + 1
+    if (nextStep < fallbacks.length) {
+      setPreviewRetry(nextStep)
+      setPreviewSrc(fallbacks[nextStep])
+    } else {
+      setImgError(true)
     }
-    setImgError(true)
+  }
+
+  const handleRetryPreview = () => {
+    setImgError(false)
+    setPreviewRetry(0)
+    // Add cache-buster to force re-fetch
+    setPreviewSrc(`https://drive.google.com/thumbnail?id=${driveId}&sz=w400&t=${Date.now()}`)
   }
 
   return (
@@ -304,7 +323,8 @@ export default function AdminImageUpload({
           }}>
             {!imgError ? (
               <img
-                src={previewUrl}
+                key={previewSrc}
+                src={previewSrc}
                 alt="Preview"
                 onLoad={e => {
                   setNaturalDims({
@@ -320,15 +340,33 @@ export default function AdminImageUpload({
                 }}
               />
             ) : (
-              <div style={{ color: '#92400e', fontSize: '0.65rem', textAlign: 'center', padding: '0.35rem', background: '#fef3c7', borderRadius: '4px', width: '100%' }}>
-                <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '3px', color: '#d97706' }} />
-                <div style={{ fontWeight: 700, marginBottom: '3px' }}>Preview unavailable</div>
-                <div style={{ marginBottom: '4px', fontSize: '0.6rem', color: '#78350f' }}>{driveId ? 'Drive CDN rate limited' : 'Image URL not reachable'}</div>
+              <div style={{ color: '#92400e', fontSize: '0.62rem', textAlign: 'center', padding: '0.4rem', background: '#fef3c7', borderRadius: '4px', width: '100%' }}>
+                <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '4px', color: '#d97706' }} />
+                <div style={{ fontWeight: 700, marginBottom: '3px' }}>Preview failed</div>
+                <div style={{ marginBottom: '6px', fontSize: '0.58rem', color: '#78350f' }}>
+                  {driveId ? 'All CDN mirrors tried' : 'URL not reachable'}
+                </div>
+                {driveId && (
+                  <button
+                    type="button"
+                    onClick={handleRetryPreview}
+                    style={{
+                      background: '#1d4ed8', color: '#fff',
+                      border: 'none', borderRadius: '4px',
+                      fontSize: '0.58rem', padding: '3px 6px',
+                      cursor: 'pointer', fontWeight: 700,
+                      display: 'block', width: '100%',
+                      marginBottom: '4px'
+                    }}
+                  >
+                    <i className="fa-solid fa-rotate-right" /> Retry
+                  </button>
+                )}
                 <a
                   href={driveId ? `https://drive.google.com/file/d/${driveId}/view` : value}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: '#1d4ed8', fontSize: '0.6rem', textDecoration: 'underline', fontWeight: 600 }}
+                  style={{ color: '#1d4ed8', fontSize: '0.58rem', textDecoration: 'underline', fontWeight: 600 }}
                 >
                   {driveId ? 'Open in Drive ↗' : 'Open Link ↗'}
                 </a>
