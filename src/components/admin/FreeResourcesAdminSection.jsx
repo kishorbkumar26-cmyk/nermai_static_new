@@ -28,6 +28,9 @@ export default function FreeResourcesAdminSection({ toast }) {
     issueInfo: '',
     url: '',
     driveFileId: '',
+    thumbnailMode: 'auto', // 'auto' | 'manual'
+    autoThumbnailUrl: '',
+    customThumbnailUrl: '',
     thumbnailUrl: '',
     sizeBytes: 2500000,
     pages: 12,
@@ -272,11 +275,13 @@ export default function FreeResourcesAdminSection({ toast }) {
       const result = await driveStorage.processAndUploadFile(file, { subFolderName: 'nermai-resources' })
       if (result && result.fileId) {
         const driveCdnThumb = `https://drive.google.com/thumbnail?id=${result.fileId}&sz=w800`
+        const finalAuto = detectedThumb || driveCdnThumb
         setResourceForm(f => ({
           ...f,
           url: result.driveUrl || `https://drive.google.com/file/d/${result.fileId}/view`,
           driveFileId: result.fileId,
-          thumbnailUrl: detectedThumb || driveCdnThumb || f.thumbnailUrl
+          autoThumbnailUrl: finalAuto || f.autoThumbnailUrl,
+          thumbnailUrl: f.thumbnailMode === 'manual' && f.customThumbnailUrl ? f.customThumbnailUrl : (finalAuto || f.thumbnailUrl)
         }))
         if (toast) toast.success(`✓ Auto-detected ${detectedPages} pages (${formatBytes(detectedSize)}) & uploaded to Drive!`)
       } else if (result && result.storageType === 'local_base64') {
@@ -284,14 +289,16 @@ export default function FreeResourcesAdminSection({ toast }) {
         // storing a multi-megabyte base64 PDF string directly in Firestore exceeds Firestore's 1,048,487 byte document limit.
         setResourceForm(f => ({
           ...f,
-          thumbnailUrl: detectedThumb || f.thumbnailUrl
+          autoThumbnailUrl: detectedThumb || f.autoThumbnailUrl,
+          thumbnailUrl: f.thumbnailMode === 'manual' && f.customThumbnailUrl ? f.customThumbnailUrl : (detectedThumb || f.thumbnailUrl)
         }))
         if (toast) toast.warning('PDF read successfully! Please paste the Google Drive share link in the Resource URL field (Drive Apps Script not configured).')
       } else if (result && result.url) {
         setResourceForm(f => ({
           ...f,
           url: result.url,
-          thumbnailUrl: detectedThumb || f.thumbnailUrl
+          autoThumbnailUrl: detectedThumb || f.autoThumbnailUrl,
+          thumbnailUrl: f.thumbnailMode === 'manual' && f.customThumbnailUrl ? f.customThumbnailUrl : (detectedThumb || f.thumbnailUrl)
         }))
         if (toast) toast.success(`✓ Auto-detected ${detectedPages} pages (${formatBytes(detectedSize)})!`)
       }
@@ -307,12 +314,16 @@ export default function FreeResourcesAdminSection({ toast }) {
   const handleResourceUrlChange = async (val) => {
     const driveId = extractGoogleDriveId(val)
     const cdnThumb = driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800` : ''
-    setResourceForm(f => ({
-      ...f,
-      url: val,
-      driveFileId: driveId || f.driveFileId,
-      thumbnailUrl: f.thumbnailUrl || cdnThumb
-    }))
+    setResourceForm(f => {
+      const autoThumb = cdnThumb || f.autoThumbnailUrl
+      return {
+        ...f,
+        url: val,
+        driveFileId: driveId || f.driveFileId,
+        autoThumbnailUrl: autoThumb,
+        thumbnailUrl: f.thumbnailMode === 'manual' && f.customThumbnailUrl ? f.customThumbnailUrl : (f.thumbnailUrl || autoThumb)
+      }
+    })
 
     // If a Google Drive link was pasted, auto-detect pages via backend inspection
     if (driveId) {
@@ -325,7 +336,8 @@ export default function FreeResourcesAdminSection({ toast }) {
               ...f,
               pages: data.pageCount,
               sizeBytes: data.fileSizeBytes || f.sizeBytes,
-              thumbnailUrl: data.thumbnailUrl || f.thumbnailUrl
+              autoThumbnailUrl: data.thumbnailUrl || f.autoThumbnailUrl,
+              thumbnailUrl: f.thumbnailMode === 'manual' && f.customThumbnailUrl ? f.customThumbnailUrl : (data.thumbnailUrl || f.thumbnailUrl)
             }))
             setDetectedInfo({
               fileName: 'Google Drive Document',
@@ -343,6 +355,16 @@ export default function FreeResourcesAdminSection({ toast }) {
     }
   }
 
+  // Handle Custom Thumbnail Upload / Change
+  const handleCustomThumbnailChange = (url) => {
+    setResourceForm(f => ({
+      ...f,
+      customThumbnailUrl: url,
+      thumbnailUrl: url,
+      thumbnailMode: 'manual'
+    }))
+  }
+
   // Open Edit Modal
   const openEditModal = (res) => {
     setEditingId(res.id)
@@ -352,6 +374,7 @@ export default function FreeResourcesAdminSection({ toast }) {
       sizeBytes: res.sizeBytes || 0,
       isExisting: true
     })
+    const isManual = Boolean(res.thumbnailMode === 'manual' || (res.customThumbnailUrl && res.customThumbnailUrl !== res.autoThumbnailUrl))
     setResourceForm({
       title: res.title || '',
       category: res.category || (settings.customSubjects?.[0] || 'Current Affairs'),
@@ -360,6 +383,9 @@ export default function FreeResourcesAdminSection({ toast }) {
       issueInfo: res.issueInfo || '',
       url: res.url || '',
       driveFileId: res.driveFileId || '',
+      thumbnailMode: isManual ? 'manual' : 'auto',
+      autoThumbnailUrl: res.autoThumbnailUrl || (!isManual ? res.thumbnailUrl : ''),
+      customThumbnailUrl: res.customThumbnailUrl || (isManual ? res.thumbnailUrl : ''),
       thumbnailUrl: res.thumbnailUrl || '',
       sizeBytes: res.sizeBytes || 2500000,
       pages: res.pages || 12,
@@ -386,6 +412,9 @@ export default function FreeResourcesAdminSection({ toast }) {
       issueInfo: '',
       url: '',
       driveFileId: '',
+      thumbnailMode: 'auto',
+      autoThumbnailUrl: '',
+      customThumbnailUrl: '',
       thumbnailUrl: '',
       sizeBytes: 2500000,
       pages: 12,
@@ -413,8 +442,13 @@ export default function FreeResourcesAdminSection({ toast }) {
 
     setSavingResource(true)
     try {
+      const finalThumb = resourceForm.thumbnailMode === 'manual'
+        ? (resourceForm.customThumbnailUrl || resourceForm.thumbnailUrl || '')
+        : (resourceForm.autoThumbnailUrl || resourceForm.thumbnailUrl || '')
+
       const payload = {
         ...resourceForm,
+        thumbnailUrl: finalThumb,
         sizeBytes: Number(resourceForm.sizeBytes) || 0,
         pages: Number(resourceForm.pages) || 1,
         popularRank: resourceForm.popularRank ? Number(resourceForm.popularRank) : null,
@@ -1553,6 +1587,231 @@ export default function FreeResourcesAdminSection({ toast }) {
                     style={{ borderColor: detectedInfo ? '#86efac' : undefined }}
                   />
                 </div>
+              </div>
+
+              {/* ── THUMBNAIL COVER SELECTION (Auto vs Manual) ── */}
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '1.15rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <label style={{ margin: 0, fontWeight: 800, fontSize: '0.92rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fa-solid fa-image" style={{ color: 'var(--maroon-primary)' }} />
+                      Resource Thumbnail Cover
+                    </label>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#64748b' }}>
+                      Choose how the card cover preview should be generated for this PDF resource.
+                    </p>
+                  </div>
+                  
+                  {/* Mode Selector Tabs */}
+                  <div style={{
+                    display: 'inline-flex',
+                    background: '#e2e8f0',
+                    borderRadius: '8px',
+                    padding: '3px',
+                    gap: '3px'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => setResourceForm(f => ({
+                        ...f,
+                        thumbnailMode: 'auto',
+                        thumbnailUrl: f.autoThumbnailUrl || f.thumbnailUrl
+                      }))}
+                      style={{
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: resourceForm.thumbnailMode === 'auto' ? '#ffffff' : 'transparent',
+                        color: resourceForm.thumbnailMode === 'auto' ? 'var(--maroon-primary)' : '#64748b',
+                        boxShadow: resourceForm.thumbnailMode === 'auto' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles" />
+                      Option 1: Auto (Page 1)
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setResourceForm(f => ({
+                        ...f,
+                        thumbnailMode: 'manual',
+                        thumbnailUrl: f.customThumbnailUrl || f.thumbnailUrl
+                      }))}
+                      style={{
+                        padding: '0.4rem 0.85rem',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        borderRadius: '6px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: resourceForm.thumbnailMode === 'manual' ? '#ffffff' : 'transparent',
+                        color: resourceForm.thumbnailMode === 'manual' ? 'var(--maroon-primary)' : '#64748b',
+                        boxShadow: resourceForm.thumbnailMode === 'manual' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <i className="fa-solid fa-cloud-arrow-up" />
+                      Option 2: Manually Upload
+                    </button>
+                  </div>
+                </div>
+
+                {/* Option 1: Auto-select from PDF Page 1 Panel */}
+                {resourceForm.thumbnailMode === 'auto' && (
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.25rem'
+                  }}>
+                    {resourceForm.autoThumbnailUrl || resourceForm.thumbnailUrl ? (
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <img
+                          src={resourceForm.autoThumbnailUrl || resourceForm.thumbnailUrl}
+                          alt="Page 1 Auto Thumbnail"
+                          style={{
+                            width: '75px',
+                            height: '100px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            border: '1.5px solid #94a3b8',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
+                            background: '#fff'
+                          }}
+                          onError={(e) => { e.target.style.display = 'none' }}
+                        />
+                        <span style={{
+                          position: 'absolute',
+                          bottom: '-6px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: '#15803d',
+                          color: '#fff',
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: '8px',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+                        }}>
+                          PAGE 1
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{
+                        width: '75px',
+                        height: '100px',
+                        background: '#f1f5f9',
+                        borderRadius: '8px',
+                        border: '1.5px dashed #cbd5e1',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#94a3b8',
+                        gap: '4px',
+                        flexShrink: 0
+                      }}>
+                        <i className="fa-solid fa-file-pdf" style={{ fontSize: '1.5rem', color: '#cbd5e1' }} />
+                        <span style={{ fontSize: '0.65rem', fontWeight: 600 }}>No PDF yet</span>
+                      </div>
+                    )}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          padding: '0.15rem 0.5rem',
+                          borderRadius: '6px'
+                        }}>
+                          ⚡ AUTO-EXTRACT FROM PDF
+                        </span>
+                        {(resourceForm.autoThumbnailUrl || resourceForm.thumbnailUrl) && (
+                          <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 600 }}>
+                            <i className="fa-solid fa-circle-check" /> Cover Ready
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ margin: '0 0 6px', fontSize: '0.82rem', color: '#475569', lineHeight: 1.4 }}>
+                        Automatically extracts the first page of the uploaded PDF or Google Drive file as the thumbnail cover.
+                      </p>
+                      {resourceForm.url && !resourceForm.autoThumbnailUrl && !resourceForm.thumbnailUrl && (
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#b45309' }}>
+                          💡 Tip: Upload a PDF file directly above or click below to use the Google Drive preview cover.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Option 2: Manually Upload Thumbnail with Dimensions Panel */}
+                {resourceForm.thumbnailMode === 'manual' && (
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1.5px solid #fed7aa',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.85rem'
+                  }}>
+                    {/* Dimension Specifications Banner */}
+                    <div style={{
+                      background: 'rgba(234, 88, 12, 0.07)',
+                      border: '1px solid #fdba74',
+                      borderRadius: '8px',
+                      padding: '0.65rem 0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem'
+                    }}>
+                      <i className="fa-solid fa-ruler-combined" style={{ color: '#ea580c', fontSize: '1.1rem', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0, fontSize: '0.78rem', color: '#9a3412', lineHeight: 1.35 }}>
+                        <strong>Recommended Thumbnail Dimensions:</strong> <strong>600 × 800 px</strong> (Portrait <strong>3:4 ratio</strong>)
+                        <br />
+                        <span style={{ color: '#7c2d12' }}>
+                          • Min: 450 × 600 px • Max file size: 2MB • Formats: JPG, PNG, WebP
+                        </span>
+                      </div>
+                    </div>
+
+                    <AdminImageUpload
+                      value={resourceForm.customThumbnailUrl || (resourceForm.thumbnailMode === 'manual' ? resourceForm.thumbnailUrl : '')}
+                      onChange={handleCustomThumbnailChange}
+                      label="Upload Custom Thumbnail"
+                      dimensions="600 × 800 px (Portrait 3:4)"
+                      subFolderName="resource-thumbnails"
+                      aspectRatio="3/4"
+                      previewHeight={160}
+                      toast={toast}
+                      hint="Recommended 600 × 800 px (3:4 ratio). Displayed on resource cards across website."
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Featured & Popular Checkboxes */}
