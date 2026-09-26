@@ -101,7 +101,7 @@
 .main-nav-strip {
   background: #FAF6EE;
   border-bottom: 1px solid rgba(212, 175, 55, 0.25);
-  padding: 0.65rem 0;
+  padding: 0.85rem 0;
   transition: all 0.3s ease;
 }
 
@@ -116,38 +116,38 @@
 .brand-group {
   display: flex;
   align-items: center;
-  gap: 1.15rem;
+  gap: 1.25rem;
   text-decoration: none;
 }
 
 .brand-emblem {
-  width: 70px;
-  height: 70px;
+  width: 105px;
+  height: 105px;
   border-radius: 50%;
   background: linear-gradient(135deg, #7B1B2E, #4A0E1C);
-  border: 2px solid #D4AF37;
+  border: 2.5px solid #D4AF37;
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(123, 27, 46, 0.3);
+  box-shadow: 0 6px 18px rgba(123, 27, 46, 0.35);
   flex-shrink: 0;
 }
 
 .brand-logo-img {
-  width: 84px;
-  height: 84px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 4px 18px rgba(123, 27, 46, 0.35);
-  border: 2.5px solid rgba(212, 175, 55, 0.6);
+  box-shadow: 0 6px 24px rgba(123, 27, 46, 0.4);
+  border: 3.5px solid rgba(212, 175, 55, 0.7);
   flex-shrink: 0;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .brand-group:hover .brand-logo-img {
-  transform: scale(1.07);
-  box-shadow: 0 6px 22px rgba(123, 27, 46, 0.5);
+  transform: scale(1.06);
+  box-shadow: 0 8px 28px rgba(123, 27, 46, 0.55);
 }
 
 .brand-titles {
@@ -157,11 +157,11 @@
 
 .brand-name {
   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 1.65rem;
-  font-weight: 800;
+  font-size: 1.95rem;
+  font-weight: 900;
   color: #7B1B2E;
-  letter-spacing: 0.22em;
-  margin-right: -0.22em;
+  letter-spacing: 0.2em;
+  margin-right: -0.2em;
   line-height: 1;
   display: block;
   white-space: nowrap;
@@ -169,13 +169,13 @@
 
 .brand-sub {
   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 0.84rem;
+  font-size: 0.98rem;
   font-weight: 800;
-  letter-spacing: 0.287em;
-  margin-right: -0.287em;
+  letter-spacing: 0.28em;
+  margin-right: -0.28em;
   color: #996515;
   text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 5px;
   line-height: 1;
   display: block;
   white-space: nowrap;
@@ -605,29 +605,29 @@
   }
 
   .main-nav-strip {
-    padding: 0.4rem 0;
+    padding: 0.65rem 0;
   }
 
   .brand-group {
-    gap: 0.6rem;
+    gap: 0.85rem;
   }
 
   .brand-logo-img, .brand-emblem {
-    width: 52px;
-    height: 52px;
+    width: 90px;
+    height: 90px;
   }
 
   .brand-name {
-    font-size: 1.12rem;
-    letter-spacing: 0.22em;
-    margin-right: -0.22em;
+    font-size: 1.45rem;
+    letter-spacing: 0.18em;
+    margin-right: -0.18em;
   }
 
   .brand-sub {
-    font-size: 0.57rem;
-    letter-spacing: 0.287em;
-    margin-right: -0.287em;
-    margin-top: 2px;
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    margin-right: -0.24em;
+    margin-top: 3px;
   }
 
   .nav-actions-right {
@@ -635,21 +635,21 @@
   }
 
   .action-circle-btn, .action-wa-circle {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   .enroll-gold-btn {
-    padding: 0.45rem 0.75rem;
-    font-size: 0.72rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
     gap: 4px;
     white-space: nowrap;
     border-radius: 30px;
   }
 
   .header-hamburger {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     padding: 7px 6px;
   }
 }
@@ -667,6 +667,19 @@
   
   .top-bar-right {
     display: none !important;
+  }
+
+  .brand-logo-img, .brand-emblem {
+    width: 82px;
+    height: 82px;
+  }
+
+  .brand-name {
+    font-size: 1.3rem;
+  }
+
+  .brand-sub {
+    font-size: 0.66rem;
   }
 
   /* Compact enroll text on tiny screens */

@@ -75,15 +75,14 @@ export function extractGoogleDriveId(urlOrId) {
 export function getGoogleDriveCDNUrl(urlOrId, width = 1000) {
   const fileId = extractGoogleDriveId(urlOrId)
   if (!fileId) return urlOrId
-  // Use thumbnail API — more stable, separate rate-limit from lh3 CDN
-  // lh3.googleusercontent.com gets rate-limited under load; thumbnail API does not
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${width}`
+  // lh3 Google User Content CDN serves directly with high resolution and no redirect
+  return `https://lh3.googleusercontent.com/d/${fileId}=w${width}`
 }
 
 export function getGoogleDriveDirectUrl(urlOrId) {
   const fileId = extractGoogleDriveId(urlOrId)
   if (!fileId) return urlOrId
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`
+  return `https://lh3.googleusercontent.com/d/${fileId}=w1000`
 }
 
 export function handleImageError(event, fallbackUrl = '') {
@@ -92,38 +91,29 @@ export function handleImageError(event, fallbackUrl = '') {
   const currentSrc = imgEl.src || ''
   const driveId = extractGoogleDriveId(currentSrc)
   if (driveId) {
-    const step = imgEl.dataset.fallbackStep || '0'
-    // Step 1: lh3 direct CDN
-    if (step === '0') {
-      imgEl.dataset.fallbackStep = '1'
-      imgEl.src = `https://lh3.googleusercontent.com/d/${driveId}=w1000`
-      return
-    }
-    // Step 2: lh3 with /u/0/ path
-    if (step === '1') {
-      imgEl.dataset.fallbackStep = '2'
-      imgEl.src = `https://lh3.googleusercontent.com/u/0/d/${driveId}=w1000`
-      return
-    }
-    // Step 3: drive usercontent download (bypasses CDN rate limits)
-    if (step === '2') {
-      imgEl.dataset.fallbackStep = '3'
-      imgEl.src = `https://drive.usercontent.google.com/download?id=${driveId}&export=view`
-      return
-    }
-    // Step 4: drive thumbnail API (different quota bucket)
-    if (step === '3') {
-      imgEl.dataset.fallbackStep = '4'
-      imgEl.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`
+    const step = parseInt(imgEl.dataset.fallbackStep || '0', 10)
+    const chain = [
+      `https://lh3.googleusercontent.com/d/${driveId}=w1000`,
+      `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`,
+      `https://drive.google.com/thumbnail?id=${driveId}&sz=w600`,
+      `https://lh3.googleusercontent.com/u/0/d/${driveId}=w1000`,
+      `https://drive.usercontent.google.com/download?id=${driveId}&export=view`,
+      `https://drive.google.com/uc?id=${driveId}&export=view`
+    ]
+    if (step < chain.length) {
+      imgEl.dataset.fallbackStep = String(step + 1)
+      imgEl.src = chain[step]
       return
     }
   }
   if (fallbackUrl) {
     imgEl.src = fallbackUrl
   } else {
-    imgEl.style.display = 'none'
-    const fallbackSibling = imgEl.parentElement?.querySelector('.toppers-card-photo-fallback, .rp-avatar-fallback')
-    if (fallbackSibling) fallbackSibling.style.display = 'flex'
+    const fallbackSibling = imgEl.parentElement?.querySelector('.ss-poster-fallback, .toppers-card-photo-fallback, .rp-avatar-fallback')
+    if (fallbackSibling) {
+      imgEl.style.display = 'none'
+      fallbackSibling.style.display = 'flex'
+    }
   }
 }
 

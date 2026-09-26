@@ -13,6 +13,7 @@ const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'))
 const ContactPage      = lazy(() => import('./pages/ContactPage'))
 const FaqPage          = lazy(() => import('./pages/FaqPage'))
 const ResultsPage      = lazy(() => import('./pages/ResultsPage'))
+const FreeResourcesPage = lazy(() => import('./pages/FreeResourcesPage'))
 const AdminPage        = lazy(() => import('./pages/AdminPage'))
 const AdminDashboard   = lazy(() => import('./pages/AdminDashboard'))
 const AdminPortal      = lazy(() => import('./components/AdminPortal'))
@@ -130,6 +131,9 @@ export default function App() {
           <Route path="/why-nermai"    element={<WhyNermaiPage />} />
           <Route path="/contact"       element={<ContactPage />} />
           <Route path="/results"       element={<ResultsPage />} />
+          <Route path="/free-resources" element={<FreeResourcesPage />} />
+          <Route path="/free-content"   element={<Navigate to="/free-resources" replace />} />
+          <Route path="/resources"      element={<Navigate to="/free-resources" replace />} />
           {/* FAQ integrated into Contact page */}
           <Route path="/faq"           element={<Navigate to="/contact#faq" replace />} />
 

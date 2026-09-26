@@ -259,14 +259,14 @@ export const driveStorage = {
   },
 
   formatImageUrl(url, size = 1000) {
-    if (!url || typeof url !== 'string') return null
+    if (!url || typeof url !== 'string') return ''
     const trimmed = url.trim()
-    if (!trimmed) return null
+    if (!trimmed) return ''
     if (trimmed.startsWith('data:') || trimmed.startsWith('blob:') || trimmed.startsWith('assets/') || trimmed.startsWith('/assets/') || trimmed.startsWith('/') || trimmed.startsWith('./')) return trimmed
     const driveId = extractGoogleDriveId(trimmed)
     if (driveId) return getGoogleDriveCDNUrl(driveId, size)
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('//')) return trimmed
-    return null
+    return trimmed
   },
 
   handleImageError(event, fallbackUrl = '') {
@@ -275,44 +275,29 @@ export const driveStorage = {
     const currentSrc = imgEl.src || ''
     const driveId = extractGoogleDriveId(currentSrc)
     if (driveId) {
-      const step = imgEl.dataset.fallbackStep || '0'
-      // Step 1: thumbnail API sz=w800 (separate rate-limit bucket — more reliable)
-      if (step === '0') {
-        imgEl.dataset.fallbackStep = '1'
-        imgEl.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w800`
-        return
-      }
-      // Step 2: lh3 direct CDN
-      if (step === '1') {
-        imgEl.dataset.fallbackStep = '2'
-        imgEl.src = `https://lh3.googleusercontent.com/d/${driveId}=w1000`
-        return
-      }
-      // Step 3: lh3 with /u/0/ path
-      if (step === '2') {
-        imgEl.dataset.fallbackStep = '3'
-        imgEl.src = `https://lh3.googleusercontent.com/u/0/d/${driveId}=w1000`
-        return
-      }
-      // Step 4: drive usercontent download
-      if (step === '3') {
-        imgEl.dataset.fallbackStep = '4'
-        imgEl.src = `https://drive.usercontent.google.com/download?id=${driveId}&export=view`
-        return
-      }
-      // Step 5: legacy uc export
-      if (step === '4') {
-        imgEl.dataset.fallbackStep = '5'
-        imgEl.src = `https://drive.google.com/uc?id=${driveId}&export=view`
+      const step = parseInt(imgEl.dataset.fallbackStep || '0', 10)
+      const chain = [
+        `https://lh3.googleusercontent.com/d/${driveId}=w1000`,
+        `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`,
+        `https://drive.google.com/thumbnail?id=${driveId}&sz=w600`,
+        `https://lh3.googleusercontent.com/u/0/d/${driveId}=w1000`,
+        `https://drive.usercontent.google.com/download?id=${driveId}&export=view`,
+        `https://drive.google.com/uc?id=${driveId}&export=view`
+      ]
+      if (step < chain.length) {
+        imgEl.dataset.fallbackStep = String(step + 1)
+        imgEl.src = chain[step]
         return
       }
     }
     if (fallbackUrl) {
       imgEl.src = fallbackUrl
     } else {
-      imgEl.style.display = 'none'
-      const fallbackSibling = imgEl.parentElement?.querySelector('.toppers-card-photo-fallback, .rp-avatar-fallback')
-      if (fallbackSibling) fallbackSibling.style.display = 'flex'
+      const fallbackSibling = imgEl.parentElement?.querySelector('.ss-poster-fallback, .toppers-card-photo-fallback, .rp-avatar-fallback')
+      if (fallbackSibling) {
+        imgEl.style.display = 'none'
+        fallbackSibling.style.display = 'flex'
+      }
     }
   }
 }

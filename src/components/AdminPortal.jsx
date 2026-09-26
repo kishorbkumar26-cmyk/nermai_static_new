@@ -205,16 +205,16 @@ function HeroSection({ toast }) {
             <i className="fa-solid fa-desktop"></i>
             <div>
               <div className="ap-hero-dim-label">🖥️ PC / Desktop Banner</div>
-              <div className="ap-hero-dim-size">Recommended: <strong>1920 × 600 px</strong></div>
-              <div className="ap-hero-dim-hint">Wide landscape image • Any ratio • JPG or PNG</div>
+              <div className="ap-hero-dim-size">Recommended: <strong>1920 × 600 px</strong> (or 1920 × 700 px)</div>
+              <div className="ap-hero-dim-hint">Wide landscape banner • JPG, PNG or WebP</div>
             </div>
           </div>
           <div className="ap-hero-dim-badge ap-hero-dim-badge--mob">
             <i className="fa-solid fa-mobile-screen-button"></i>
             <div>
-              <div className="ap-hero-dim-label">📱 Mobile Poster</div>
-              <div className="ap-hero-dim-size">Recommended: <strong>768 × 1024 px</strong></div>
-              <div className="ap-hero-dim-hint">Portrait image • 3:4 ratio • JPG or PNG</div>
+              <div className="ap-hero-dim-label">📱 Mobile Banner (Revised Square Ratio)</div>
+              <div className="ap-hero-dim-size">Recommended: <strong>1080 × 1080 px</strong> (1:1 Square)</div>
+              <div className="ap-hero-dim-hint">Square ratio • Height-reduced • Slider arrows placed below image</div>
             </div>
           </div>
         </div>
@@ -230,7 +230,7 @@ function HeroSection({ toast }) {
               subFolderName="nermai-hero-desktop"
               maxWidth={1920}
               aspectRatio="16/5"
-              hint="1920 × 600 px • Desktop Banner"
+              hint="1920 × 600 px • Wide Desktop Banner"
               placeholder="Paste Google Drive URL / ID or Image link for Desktop..."
               toast={toast}
             />
@@ -243,9 +243,9 @@ function HeroSection({ toast }) {
               value={form.urlMobile}
               onChange={val => setForm(f => ({ ...f, urlMobile: val }))}
               subFolderName="nermai-hero-mobile"
-              maxWidth={768}
-              aspectRatio="3/4"
-              hint="768 × 1024 px • Mobile Poster"
+              maxWidth={1080}
+              aspectRatio="1/1"
+              hint="1080 × 1080 px • Revised 1:1 Square Mobile Poster"
               placeholder="Paste Google Drive URL / ID or Image link for Mobile..."
               toast={toast}
             />
@@ -1412,11 +1412,54 @@ function GallerySection({ toast }) {
   const [form, setForm] = useState({ url: '', caption: '' })
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [isVisible, setIsVisible] = useState(true)
+  const [savingVisibility, setSavingVisibility] = useState(false)
 
   useEffect(() => {
     const unsub = fbFirestore.onGalleryChanged(setImages)
+    fbFirestore.getSettings().then(s => {
+      if (s) {
+        if (s.galleryConfig?.visible !== undefined) {
+          setIsVisible(s.galleryConfig.visible)
+        } else if (s.galleryVisibility !== undefined) {
+          setIsVisible(s.galleryVisibility)
+        } else if (s.homeContent?.visibility?.gallery !== undefined) {
+          setIsVisible(s.homeContent.visibility.gallery)
+        }
+      }
+    })
     return () => unsub()
   }, [])
+
+  const handleToggleVisibility = async (e) => {
+    const nextVal = e.target.checked
+    setIsVisible(nextVal)
+    setSavingVisibility(true)
+    try {
+      const s = await fbFirestore.getSettings() || {}
+      const updatedHomeContent = {
+        ...(s.homeContent || {}),
+        visibility: {
+          ...(s.homeContent?.visibility || {}),
+          gallery: nextVal
+        }
+      }
+      await fbFirestore.updateSettings({
+        galleryVisibility: nextVal,
+        galleryConfig: {
+          ...(s.galleryConfig || {}),
+          visible: nextVal
+        },
+        homeContent: updatedHomeContent
+      })
+      toast.success(nextVal ? '🟢 Classroom Moments / Gallery section is now VISIBLE on homepage' : '🔴 Classroom Moments / Gallery section is now HIDDEN from homepage')
+    } catch (err) {
+      toast.error('Failed to update visibility: ' + err.message)
+      setIsVisible(!nextVal)
+    } finally {
+      setSavingVisibility(false)
+    }
+  }
 
   const handleUpload = async (file) => {
     setUploading(true); setProgress(20)
@@ -1446,7 +1489,47 @@ function GallerySection({ toast }) {
 
   return (
     <div>
-      <h2 className="ap-section-title"><i className="fa-solid fa-images"></i> Gallery</h2>
+      <h2 className="ap-section-title"><i className="fa-solid fa-images"></i> Classroom Moments / Gallery</h2>
+      
+      {/* ── Section Visibility Switch Card ── */}
+      <div
+        style={{
+          borderRadius: '12px',
+          border: '1.5px solid var(--gray-200)',
+          marginBottom: '1.5rem',
+          padding: '1.25rem 1.5rem',
+          borderLeft: isVisible ? '5px solid #10b981' : '5px solid #ef4444',
+          background: isVisible ? '#f0fdf4' : '#fef2f2',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span style={{ fontSize: '1.2rem' }}>{isVisible ? '🟢' : '🔴'}</span>
+              <strong style={{ fontSize: '1rem', color: isVisible ? '#065f46' : '#991b1b' }}>
+                {isVisible ? 'Classroom Moments / Gallery Section is VISIBLE' : 'Classroom Moments / Gallery Section is HIDDEN'}
+              </strong>
+            </div>
+            <p style={{ margin: '0.25rem 0 0 1.8rem', fontSize: '0.82rem', color: isVisible ? '#047857' : '#b91c1c' }}>
+              Controls the visibility of the "Classroom Moments" photo gallery on the website homepage.
+            </p>
+          </div>
+
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', background: 'white', padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1.5px solid #d1d5db', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', fontWeight: 700, fontSize: '0.9rem' }}>
+            <input
+              type="checkbox"
+              checked={isVisible}
+              onChange={handleToggleVisibility}
+              disabled={savingVisibility}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            {isVisible ? 'Section: ON' : 'Section: OFF'}
+          </label>
+        </div>
+      </div>
       
       {/* Dimension guide */}
       <div className="ap-hero-dim-guide" style={{ marginBottom: '1.25rem' }}>

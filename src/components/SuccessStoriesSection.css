@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════════
-   NERMAI SUCCESS STORIES & TESTIMONIALS SECTION (PIXEL-PERFECT REFERENCE DESIGN)
+   NERMAI SUCCESS STORIES & RESULTS GALLERY SECTION (PIXEL-PERFECT REFERENCE DESIGN)
    Deep Heritage Maroon · Shimmering Gold · Neoclassical Dome Artwork Blend
    ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -9,7 +9,7 @@
   position: relative;
   background: #250209;
   color: #FAF7F2;
-  padding: 3.25rem 0 2.75rem;
+  padding: 3.5rem 0 3rem;
   overflow: hidden;
   border-top: 1px solid rgba(212, 175, 55, 0.3);
   border-bottom: 1px solid rgba(212, 175, 55, 0.3);
@@ -22,9 +22,9 @@
   background-image: 
     linear-gradient(90deg, 
       #250209 0%, 
-      rgba(37, 2, 9, 0.96) 35%, 
-      rgba(37, 2, 9, 0.82) 65%, 
-      rgba(37, 2, 9, 0.35) 100%
+      rgba(37, 2, 9, 0.95) 30%, 
+      rgba(37, 2, 9, 0.85) 60%, 
+      rgba(37, 2, 9, 0.4) 100%
     ),
     url('/success-stories-bg.png');
   background-position: right center;
@@ -35,7 +35,7 @@
 }
 
 .ss-container {
-  max-width: 1360px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 1.5rem;
   position: relative;
@@ -46,15 +46,15 @@
 .ss-header-block {
   position: relative;
   text-align: center;
-  max-width: 780px;
-  margin: 0 auto 2.2rem;
+  max-width: 800px;
+  margin: 0 auto 2.4rem;
 }
 
 /* Top-Left Floating Cursive Script Accent */
 .ss-script-top-left {
   position: absolute;
   top: -14px;
-  left: -80px;
+  left: -90px;
   transform: rotate(-10deg);
   pointer-events: none;
 }
@@ -81,7 +81,7 @@
 .ss-script-top-right {
   position: absolute;
   top: -14px;
-  right: -95px;
+  right: -105px;
   transform: rotate(10deg);
   pointer-events: none;
 }
@@ -139,11 +139,11 @@
 
 /* Subtitle */
 .ss-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1.6;
   color: #FFFFFF !important;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-  max-width: 660px;
+  max-width: 680px;
   margin: 0 auto;
 }
 
@@ -158,7 +158,7 @@
 }
 
 .ss-section-title-wrap {
-  max-width: 620px;
+  max-width: 660px;
 }
 
 .ss-section-badge-title {
@@ -173,14 +173,8 @@
 }
 
 .ss-crown-icon {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #F5D061;
-}
-
-.ss-quote-icon-txt {
-  font-size: 1.45rem;
-  color: #F5D061;
-  line-height: 1;
 }
 
 .ss-title-line {
@@ -192,9 +186,9 @@
 }
 
 .ss-section-desc {
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   color: #F7EFE6 !important;
-  margin-top: 0.3rem;
+  margin-top: 0.25rem;
   line-height: 1.45;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
@@ -218,7 +212,7 @@
 
 /* ════════ ROW 1: OUR TOPPERS ════════ */
 .ss-toppers-section {
-  margin-bottom: 2.2rem;
+  margin-bottom: 2.8rem;
 }
 
 /* Category Filter Pills */
@@ -230,12 +224,12 @@
 }
 
 .ss-cat-pill {
-  padding: 0.42rem 1.3rem;
+  padding: 0.38rem 1.25rem;
   border-radius: 9999px;
   border: 1px solid rgba(245, 208, 97, 0.4);
   background: rgba(20, 2, 6, 0.7);
   color: #FAF7F2;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -275,40 +269,45 @@
   justify-content: center;
   align-items: center;
   gap: 6px;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
 }
 
 .ss-toppers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.25rem;
+  display: flex;
+  gap: 1.15rem;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 
 .ss-topper-card {
   display: flex;
   flex-direction: column;          /* portrait: photo on top, footer below */
-  background: linear-gradient(135deg, rgba(38, 5, 14, 0.88) 0%, rgba(18, 2, 6, 0.92) 100%);
-  border: 1px solid rgba(245, 208, 97, 0.3);
-  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(38, 5, 14, 0.92) 0%, rgba(18, 2, 6, 0.95) 100%);
+  border: 1.2px solid rgba(245, 208, 97, 0.35);
+  border-radius: 12px;
   overflow: hidden;
   backdrop-filter: blur(8px);
   position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-height: 300px;              /* portrait height */
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 195px;
+  flex: 0 0 195px;
+  max-width: 215px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
 }
 
 .ss-topper-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(245, 208, 97, 0.7);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 18px rgba(245, 208, 97, 0.25);
+  transform: translateY(-5px);
+  border-color: rgba(245, 208, 97, 0.8);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 16px rgba(245, 208, 97, 0.3);
 }
 
-/* Photo — fills top ~75% of the card */
+/* Photo — standard compact card height */
 .ss-topper-photo-wrap {
-  flex: 1;
-  min-height: 220px;
+  width: 100%;
+  height: 185px;
   position: relative;
   background: #140206;
   overflow: hidden;
@@ -335,61 +334,62 @@
   justify-content: center;
   background: linear-gradient(135deg, #4A0E1C, #250209);
   color: #F5D061;
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
 }
 
 /* Footer bar — compact name + exam */
 .ss-topper-info-wrap {
-  padding: 0.85rem 1rem 0.9rem 1rem;
+  padding: 0.65rem 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   position: relative;
-  background: linear-gradient(180deg, #5A1222 0%, #3A0815 100%);
-  border-top: 1.5px solid rgba(245, 208, 97, 0.35);
+  background: linear-gradient(180deg, #500E1C 0%, #300610 100%);
+  border-top: 1.5px solid rgba(245, 208, 97, 0.3);
   flex-shrink: 0;
 }
 
 /* Gold Rank Badge — top-right of PHOTO section */
 .ss-topper-rank-badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: linear-gradient(135deg, #F5D061 0%, #D4AF37 100%);
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #FDE68A 0%, #F5D061 50%, #D4AF37 100%);
   color: #150207;
-  padding: 4px 8px 5px;
-  border-radius: 7px;
+  padding: 3px 6px;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   z-index: 3;
+  min-width: 32px;
 }
 
 .ss-badge-crown {
-  font-size: 0.72rem;
-  color: #5C0F1E;
+  font-size: 0.65rem;
+  color: #4A0815;
   margin-bottom: 1px;
 }
 
 .ss-rank-air-lbl {
-  font-size: 0.6rem;
+  font-size: 0.54rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: #380715;
 }
 
 .ss-rank-number {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 900;
   color: #150207;
 }
 
 .ss-topper-name {
   font-family: var(--font-display, Georgia, serif);
-  font-size: 1.1rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: #FFFFFF;
   margin: 0 0 0.15rem;
@@ -400,7 +400,7 @@
 }
 
 .ss-topper-exam {
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: #F5D061;
   margin: 0;
@@ -408,10 +408,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.ss-topper-quote {
-  display: none;   /* hidden in card, shown in modal */
 }
 
 .ss-no-toppers-box {
@@ -434,38 +430,144 @@
   margin: 0;
 }
 
-/* ════════ ROW 2: TESTIMONIALS ════════ */
-.ss-testimonials-section {
-  margin-bottom: 2rem;
+/* ════════ ROW 2: RESULTS GALLERY (ADDITIONAL BANNER SECTION) ════════ */
+.ss-gallery-section {
+  margin-bottom: 2.8rem;
 }
 
-.ss-testi-handwritten-badge {
-  font-family: 'Caveat', cursive;
-  color: #F5D061;
-  font-size: 1.35rem;
-  font-weight: 700;
-  transform: rotate(-3deg);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-}
-
-.ss-testi-carousel-row {
+.ss-gallery-carousel-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
 }
 
+.ss-gallery-grid-wrapper {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.ss-gallery-cards-grid {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.ss-gallery-poster-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 4px;
+  background: linear-gradient(135deg, #F5D061 0%, rgba(212, 175, 55, 0.5) 50%, #F5D061 100%);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
+  width: 100%;
+  max-width: 640px;
+  flex: 1 1 0;
+  display: flex;
+}
+
+.ss-gallery-poster-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.8), 0 0 32px rgba(245, 208, 97, 0.45);
+}
+
+.ss-poster-frame {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #150207;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-poster-img {
+  width: 100%;
+  height: auto;
+  max-height: 440px;
+  display: block;
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.ss-gallery-poster-card:hover .ss-poster-img {
+  transform: scale(1.03);
+}
+
+.ss-poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 2, 6, 0.85) 0%, rgba(20, 2, 6, 0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.ss-gallery-poster-card:hover .ss-poster-overlay {
+  opacity: 1;
+}
+
+.ss-poster-zoom-btn {
+  align-self: flex-end;
+  background: rgba(245, 208, 97, 0.95);
+  color: #150207;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.ss-poster-caption-tag {
+  color: #FAF7F2;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ss-gallery-bottom-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.ss-gallery-dots-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+}
+
+/* ════════ CAROUSEL CONTROLS ════════ */
 .ss-carousel-arrow-btn {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 1px solid rgba(245, 208, 97, 0.4);
-  background: rgba(22, 3, 7, 0.75);
+  border: 1px solid rgba(245, 208, 97, 0.45);
+  background: rgba(22, 3, 7, 0.85);
   color: #F5D061;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   transition: all 0.2s ease;
   flex-shrink: 0;
   backdrop-filter: blur(4px);
@@ -479,111 +581,8 @@
 }
 
 .ss-carousel-arrow-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
-}
-
-.ss-testi-cards-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-}
-
-.ss-testi-white-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 1.25rem 1.35rem 1.15rem;
-  color: #1A1008;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-  min-height: 145px;
-  transition: transform 0.25s ease;
-}
-
-.ss-testi-white-card:hover {
-  transform: translateY(-3px);
-}
-
-.ss-card-top-quote-mark {
-  font-size: 1.5rem;
-  color: #7B1B2E;
-  line-height: 1;
-  font-weight: 900;
-  margin-bottom: 4px;
-}
-
-.ss-testi-quote-body {
-  font-size: 0.84rem;
-  line-height: 1.45;
-  color: #2D251E;
-  font-weight: 500;
-  margin: 0 0 0.85rem;
-  flex: 1;
-}
-
-.ss-testi-author-row {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  position: relative;
-  z-index: 2;
-}
-
-.ss-author-avatar-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #5C0F1E;
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-.ss-author-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.ss-author-name {
-  font-weight: 700;
-  font-size: 0.86rem;
-  color: #1A1008;
-  line-height: 1.2;
-}
-
-.ss-author-role {
-  font-size: 0.74rem;
-  color: #6B5E52;
-  margin-top: 1px;
-}
-
-.ss-card-watermark-quote {
-  position: absolute;
-  right: 14px;
-  bottom: 2px;
-  font-size: 3.5rem;
-  color: rgba(212, 175, 55, 0.18);
-  font-family: Georgia, serif;
-  line-height: 1;
-  pointer-events: none;
-}
-
-/* Testimonials Carousel Dots */
-.ss-testi-dots-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: 0.95rem;
 }
 
 .ss-testi-dot {
@@ -655,13 +654,98 @@
   flex-shrink: 0;
 }
 
+/* ════════ FULL SIZE POSTER LIGHTBOX MODAL ════════ */
+.ss-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 1, 4, 0.88);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: ssLightboxFadeIn 0.25s ease;
+}
+
+.ss-lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #1D0308;
+  border: 1.5px solid rgba(245, 208, 97, 0.5);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 208, 97, 0.25);
+}
+
+.ss-lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(245, 208, 97, 0.5);
+  color: #F5D061;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.ss-lightbox-close:hover {
+  background: #F5D061;
+  color: #150207;
+  transform: scale(1.1);
+}
+
+.ss-lightbox-img-wrap {
+  max-height: calc(90vh - 70px);
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-lightbox-img {
+  max-width: 100%;
+  max-height: calc(90vh - 70px);
+  object-fit: contain;
+  display: block;
+}
+
+.ss-lightbox-caption {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  background: #140206;
+  border-top: 1px solid rgba(245, 208, 97, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #F5D061;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.ss-lightbox-icon {
+  font-size: 1.1rem;
+}
+
+@keyframes ssLightboxFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 /* ════════ RESPONSIVE RULES ════════ */
 @media (max-width: 1100px) {
-  .ss-toppers-grid,
-  .ss-testi-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .ss-bottom-features-bar {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -708,97 +792,74 @@
 
   .ss-topper-card {
     width: 100%;
-    max-width: 310px;
+    max-width: 290px;
     margin: 0 auto;
     min-height: auto;
-    border-radius: 14px;
-    animation: ssTestiFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Adaptive photo frame without cutting portrait faces or height */
-  .ss-topper-photo-wrap {
-    min-height: unset;
-    height: clamp(270px, 70vw, 320px);
-    max-height: 330px;
-    width: 100%;
+  /* Gallery Single-Card on Mobile - Full Width & Larger Display */
+  .ss-gallery-carousel-row {
     position: relative;
-    background: #140206;
-    overflow: hidden;
-  }
-
-  .ss-topper-photo {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top; /* Anchors top so head and face are not cut off */
-  }
-
-  .ss-topper-info-wrap {
-    padding: 0.75rem 0.95rem;
-  }
-
-  .ss-topper-name {
-    font-size: 0.94rem;
-    margin-bottom: 2px;
-  }
-
-  .ss-topper-exam {
-    font-size: 0.74rem;
-  }
-
-  .ss-topper-rank-badge {
-    top: 8px;
-    right: 8px;
-    padding: 3px 6px 4px;
-  }
-
-  .ss-topper-dots-row {
     display: flex;
+    align-items: center;
     justify-content: center;
-    align-items: center;
-    gap: 7px;
-    margin-top: 0.85rem;
-  }
-
-  /* Testimonials Single-Card Carousel on Mobile */
-  .ss-testi-carousel-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    position: relative;
-    width: 100%;
     user-select: none;
   }
 
-  .ss-testi-cards-grid {
-    grid-template-columns: 1fr;
+  .ss-gallery-grid-wrapper {
+    width: 100%;
     flex: 1;
     min-width: 0;
-    width: 100%;
+  }
+
+  .ss-gallery-cards-grid {
     display: block;
-  }
-
-  .ss-testi-white-card {
     width: 100%;
-    min-height: 140px;
-    padding: 1.15rem 1.15rem 1rem;
-    box-sizing: border-box;
-    animation: ssTestiFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .ss-testi-quote-body {
-    font-size: 0.85rem;
-    line-height: 1.48;
+  .ss-gallery-poster-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    border-radius: 14px;
+    padding: 3.5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
   }
 
-  /* Keep Left and Right Slide Buttons on Mobile */
+  .ss-gallery-poster-card .ss-poster-frame {
+    width: 100%;
+    height: auto;
+    border-radius: 11px;
+  }
+
+  .ss-gallery-poster-card .ss-poster-img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+
+  .ss-gallery-bottom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  .ss-topper-photo-wrap {
+    height: clamp(260px, 68vw, 310px);
+    width: 100%;
+    position: relative;
+  }
+
   .ss-carousel-arrow-btn {
     display: flex !important;
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
     background: rgba(35, 4, 10, 0.88);
     border: 1.5px solid #F5D061;
     color: #F5D061;
@@ -816,11 +877,6 @@
     color: #250209;
   }
 
-  .ss-testi-dots-row {
-    margin-top: 1rem;
-    gap: 7px;
-  }
-
   .ss-bottom-features-bar {
     grid-template-columns: 1fr;
   }
@@ -828,11 +884,10 @@
 
 @media (max-width: 420px) {
   .ss-container {
-    padding: 0 0.65rem;
+    padding: 0 0.5rem;
   }
 
-  .ss-toppers-carousel-row,
-  .ss-testi-carousel-row {
+  .ss-toppers-carousel-row {
     gap: 0.35rem;
   }
 
@@ -841,8 +896,12 @@
   }
 
   .ss-topper-photo-wrap {
-    height: clamp(255px, 75vw, 295px);
-    max-height: 300px;
+    height: clamp(245px, 72vw, 285px);
+  }
+
+  .ss-gallery-bottom-controls {
+    gap: 0.75rem;
+    margin-top: 0.85rem;
   }
 
   .ss-carousel-arrow-btn {
@@ -851,19 +910,5 @@
     min-width: 34px;
     font-size: 0.8rem;
   }
-
-  .ss-testi-white-card {
-    padding: 1rem 0.95rem 0.9rem;
-  }
 }
 
-@keyframes ssTestiFadeIn {
-  from {
-    opacity: 0.4;
-    transform: translateY(3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}

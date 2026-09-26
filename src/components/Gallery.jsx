@@ -6,9 +6,10 @@ import { invalidateCachedUrls } from '../utils/imageCache'
 
 export default function Gallery() {
   const [images, setImages] = useState([])
+  const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    const unsub = fbFirestore.onGalleryChanged(items => {
+    const unsubGallery = fbFirestore.onGalleryChanged(items => {
       setImages(items)
 
       // Per-image cache invalidation driven by Firestore changes
@@ -25,10 +26,26 @@ export default function Gallery() {
       // Preload all gallery images into cache in the background
       driveStorage.preloadImages(items.map(img => img.url).filter(Boolean))
     })
-    return () => unsub()
+
+    const unsubSettings = fbFirestore.onSettingsChanged?.(s => {
+      if (s) {
+        if (s.galleryConfig?.visible !== undefined) {
+          setIsVisible(s.galleryConfig.visible)
+        } else if (s.galleryVisibility !== undefined) {
+          setIsVisible(s.galleryVisibility)
+        } else if (s.homeContent?.visibility?.gallery !== undefined) {
+          setIsVisible(s.homeContent.visibility.gallery)
+        }
+      }
+    })
+
+    return () => {
+      if (unsubGallery) unsubGallery()
+      if (typeof unsubSettings === 'function') unsubSettings()
+    }
   }, [])
 
-  if (images.length === 0) return null
+  if (!isVisible || images.length === 0) return null
 
   return (
     <section className="gallery-section section" id="gallery" style={{ backgroundColor: 'var(--white)' }}>

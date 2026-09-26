@@ -44,6 +44,7 @@ function VisibilityEditor({ visibility = {}, onChange }) {
     { key: 'toppers', label: 'Toppers Carousel' },
     { key: 'gallery', label: 'Gallery Section' },
     { key: 'googleReviews', label: 'Google Reviews (Elfsight Widget)' },
+    { key: 'freeResources', label: 'Free Resources (Study Notes & Question Banks)' },
     { key: 'faq', label: 'FAQ Section' }
   ]
 
@@ -1373,19 +1374,26 @@ function TickerEditor({ ticker = { visible: true, items: [] }, onChange }) {
 }
 
 
-/* ── Toppers Wall / Unified Success Stories & Testimonials Card Editor ──── */
+/* ── Toppers Wall / Unified Success Stories & Results Gallery Card Editor ──── */
 function ToppersWallEditor({ data = {}, onChange }) {
   const cfg = {
-    eyebrow: data.eyebrow ?? 'STUDENT SUCCESS STORIES',
+    eyebrow: data.eyebrow ?? 'NERMAI SUCCESS STORIES',
     titlePrefix: data.titlePrefix ?? 'From Aspirants to',
     titleHighlight: data.titleHighlight ?? 'Achievers',
     subtitle: data.subtitle ?? 'Real journeys. Real people. Real results. Be inspired by our students who turned their dreams into reality with Nermai.',
     scriptTopLeft: data.scriptTopLeft ?? 'Learn\nPrepare\nSucceed',
+    scriptTopRight: data.scriptTopRight ?? 'Different\nAspirations\nOne\nDestination',
 
     toppersSubheading: data.toppersSubheading ?? 'OUR TOPPERS',
     toppersDesc: data.toppersDesc ?? 'Meet our achievers who made it happen with dedication, guidance and the Nermai way.',
     toppersViewAllText: data.toppersViewAllText ?? 'View All Toppers',
     toppersViewAllLink: data.toppersViewAllLink ?? '/results',
+
+    resultsGalleryHeading: data.resultsGalleryHeading ?? 'RESULTS GALLERY',
+    resultsGalleryDesc: data.resultsGalleryDesc ?? 'Various batch results, selections and achievement posters from Nermai IAS Academy.',
+    resultsGalleryViewAllText: data.resultsGalleryViewAllText ?? 'View Full Gallery',
+    resultsGalleryViewAllLink: data.resultsGalleryViewAllLink ?? '/results',
+    showResultsGallery: data.showResultsGallery !== false,
 
     feature1Icon: data.feature1Icon ?? 'fa-trophy',
     feature1Title: data.feature1Title ?? 'Expert Guidance',
@@ -1396,14 +1404,12 @@ function ToppersWallEditor({ data = {}, onChange }) {
     feature3Icon: data.feature3Icon ?? 'fa-chart-line',
     feature3Title: data.feature3Title ?? 'Proven Results',
     feature3Desc: data.feature3Desc ?? 'Across competitive exams',
-
-    testimonialsHeading: data.testimonialsHeading ?? 'TESTIMONIALS',
-    testimonialsSubtitle: data.testimonialsSubtitle ?? 'Honest feedback from our students.',
-    testimonialsScript: data.testimonialsScript ?? 'Real Stories\nReal Impact',
+    feature4Icon: data.feature4Icon ?? 'fa-users',
+    feature4Title: data.feature4Title ?? 'Diverse Backgrounds',
+    feature4Desc: data.feature4Desc ?? 'Students from towns, cities and rural areas',
 
     showScriptTopLeft: data.showScriptTopLeft !== false,
     showBottomFeatures: data.showBottomFeatures !== false,
-    showTestimonials: data.showTestimonials !== false,
     ...data
   }
 
@@ -1412,21 +1418,22 @@ function ToppersWallEditor({ data = {}, onChange }) {
   return (
     <div>
       <p style={{ fontSize: '0.85rem', color: 'var(--gray-500)', marginBottom: '1.5rem' }}>
-        Customize every heading, cursive accent, feature highlight, topper label, and testimonial text on the homepage <strong>"From Aspirants to Achievers"</strong> unified heritage card.
+        Customize every heading, cursive accent, achiever topper label, and Results Gallery banner section on the homepage <strong>"From Aspirants to Achievers"</strong> unified heritage section.
       </p>
 
-      {/* 1. Main Header & Top-Left Cursive Script */}
+      {/* 1. Main Header & Cursive Scripts */}
       <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
           <h4 style={{ color: 'var(--maroon)', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
-            <i className="fa-solid fa-heading" style={{ marginRight: '6px' }} /> 1. Section Header & Cursive Accent
+            <i className="fa-solid fa-heading" style={{ marginRight: '6px' }} /> 1. Section Header & Cursive Script Accents
           </h4>
-          <Toggle label="Show Top-Left Cursive Accent" checked={cfg.showScriptTopLeft} onChange={v => update('showScriptTopLeft', v)} />
+          <Toggle label="Show Cursive Accents" checked={cfg.showScriptTopLeft} onChange={v => update('showScriptTopLeft', v)} />
         </div>
 
         <div className="ap-form-row">
-          <Field label="Eyebrow Badge Pill" value={cfg.eyebrow} onChange={v => update('eyebrow', v)} placeholder="STUDENT SUCCESS STORIES" />
+          <Field label="Eyebrow Badge Pill" value={cfg.eyebrow} onChange={v => update('eyebrow', v)} placeholder="NERMAI SUCCESS STORIES" />
           <Field label="Top-Left Cursive Script (Enter for new lines)" value={cfg.scriptTopLeft} onChange={v => update('scriptTopLeft', v)} type="textarea" placeholder="Learn&#10;Prepare&#10;Succeed" />
+          <Field label="Top-Right Cursive Script (Enter for new lines)" value={cfg.scriptTopRight} onChange={v => update('scriptTopRight', v)} type="textarea" placeholder="Different&#10;Aspirations&#10;One&#10;Destination" />
         </div>
 
         <div className="ap-form-row">
@@ -1437,10 +1444,10 @@ function ToppersWallEditor({ data = {}, onChange }) {
         <Field label="Subtitle / Description Paragraph" value={cfg.subtitle} onChange={v => update('subtitle', v)} type="textarea" placeholder="Real journeys. Real people. Real results..." />
       </div>
 
-      {/* 2. Left Column: Toppers Sub-Header & Link */}
+      {/* 2. Our Toppers Carousel Header */}
       <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
         <h4 style={{ color: 'var(--maroon)', fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', borderBottom: '1px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
-          <i className="fa-solid fa-crown" style={{ marginRight: '6px' }} /> 2. Our Toppers Carousel Header
+          <i className="fa-solid fa-crown" style={{ marginRight: '6px' }} /> 2. Our Toppers Row Header & Links
         </h4>
         <div className="ap-form-row">
           <Field label="Toppers Subheading" value={cfg.toppersSubheading} onChange={v => update('toppersSubheading', v)} placeholder="OUR TOPPERS" />
@@ -1448,18 +1455,41 @@ function ToppersWallEditor({ data = {}, onChange }) {
           <Field label="View All Link URL" value={cfg.toppersViewAllLink} onChange={v => update('toppersViewAllLink', v)} placeholder="/results" />
         </div>
         <Field label="Toppers Description Line" value={cfg.toppersDesc} onChange={v => update('toppersDesc', v)} placeholder="Meet our achievers who made it happen with dedication..." />
+        <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', marginTop: '0.5rem' }}>
+          💡 <em>Note: Achievers with their ranks and photos are managed directly in the <strong>Results Portal</strong> and automatically sync live!</em>
+        </p>
       </div>
 
-      {/* 3. Bottom 3 Feature Highlights Bar */}
+      {/* 3. Results Gallery Banner Section Header */}
       <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
           <h4 style={{ color: 'var(--maroon)', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
-            <i className="fa-solid fa-layer-group" style={{ marginRight: '6px' }} /> 3. Bottom 3 Feature Highlights
+            <i className="fa-regular fa-images" style={{ marginRight: '6px' }} /> 3. Results Gallery Banners Row Header
+          </h4>
+          <Toggle label="Show Results Gallery Row" checked={cfg.showResultsGallery} onChange={v => update('showResultsGallery', v)} />
+        </div>
+
+        <div className="ap-form-row">
+          <Field label="Section Heading" value={cfg.resultsGalleryHeading} onChange={v => update('resultsGalleryHeading', v)} placeholder="RESULTS GALLERY" />
+          <Field label="View All Button Text" value={cfg.resultsGalleryViewAllText} onChange={v => update('resultsGalleryViewAllText', v)} placeholder="View Full Gallery" />
+          <Field label="View All Link URL" value={cfg.resultsGalleryViewAllLink} onChange={v => update('resultsGalleryViewAllLink', v)} placeholder="/results" />
+        </div>
+        <Field label="Description Line" value={cfg.resultsGalleryDesc} onChange={v => update('resultsGalleryDesc', v)} placeholder="Various batch results, selections and achievement posters..." />
+        <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', marginTop: '0.5rem' }}>
+          💡 <em>Note: Result posters and banners are uploaded in the <strong>Results Gallery</strong> admin section with instant preview!</em>
+        </p>
+      </div>
+
+      {/* 4. Bottom 4 Feature Pillars Bar */}
+      <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
+          <h4 style={{ color: 'var(--maroon)', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
+            <i className="fa-solid fa-layer-group" style={{ marginRight: '6px' }} /> 4. Bottom 4 Feature Pillars
           </h4>
           <Toggle label="Show Bottom Feature Highlights" checked={cfg.showBottomFeatures} onChange={v => update('showBottomFeatures', v)} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           {/* Feature 1 */}
           <div style={{ background: 'var(--gray-50)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
             <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--maroon)', marginBottom: '0.5rem' }}>🏆 Feature 1</div>
@@ -1480,27 +1510,14 @@ function ToppersWallEditor({ data = {}, onChange }) {
             <Field label="Title" value={cfg.feature3Title} onChange={v => update('feature3Title', v)} placeholder="Proven Results" />
             <Field label="Description" value={cfg.feature3Desc} onChange={v => update('feature3Desc', v)} placeholder="Across competitive exams" />
           </div>
-        </div>
-      </div>
 
-      {/* 4. Right Column: Testimonials Stack Card */}
-      <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
-          <h4 style={{ color: 'var(--maroon)', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
-            <i className="fa-solid fa-comments" style={{ marginRight: '6px' }} /> 4. Right Column Testimonials Card
-          </h4>
-          <Toggle label="Show Testimonials Column" checked={cfg.showTestimonials} onChange={v => update('showTestimonials', v)} />
+          {/* Feature 4 */}
+          <div style={{ background: 'var(--gray-50)', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--maroon)', marginBottom: '0.5rem' }}>👥 Feature 4</div>
+            <Field label="Title" value={cfg.feature4Title} onChange={v => update('feature4Title', v)} placeholder="Diverse Backgrounds" />
+            <Field label="Description" value={cfg.feature4Desc} onChange={v => update('feature4Desc', v)} placeholder="Students from towns, cities and rural areas" />
+          </div>
         </div>
-
-        <div className="ap-form-row">
-          <Field label="Testimonials Header" value={cfg.testimonialsHeading} onChange={v => update('testimonialsHeading', v)} placeholder="TESTIMONIALS" />
-          <Field label="Subtitle" value={cfg.testimonialsSubtitle} onChange={v => update('testimonialsSubtitle', v)} placeholder="Honest feedback from our students." />
-          <Field label="Top-Right Cursive Script (Enter for new lines)" value={cfg.testimonialsScript} onChange={v => update('testimonialsScript', v)} type="textarea" placeholder="Real Stories&#10;Real Impact" />
-        </div>
-
-        <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', marginTop: '0.5rem' }}>
-          💡 <em>Note: Candidate testimonials themselves are managed in the <strong>Testimonials</strong> admin tab and automatically sync here!</em>
-        </p>
       </div>
     </div>
   )
@@ -1520,19 +1537,26 @@ const TABS = [
 ]
 
 const DEFAULTS = {
-  visibility: { stats: true, about: true, features: true, courses: true, steps: true, results: true, gallery: true, googleReviews: true, faq: true, events: true, toppers: true },
+  visibility: { stats: true, about: true, features: true, courses: true, steps: true, results: true, gallery: true, googleReviews: true, faq: true, events: true, toppers: true, freeResources: true },
   ticker: { visible: true, speed: 35, items: [] },
   toppersWall: {
-    eyebrow: 'STUDENT SUCCESS STORIES',
+    eyebrow: 'NERMAI SUCCESS STORIES',
     titlePrefix: 'From Aspirants to',
     titleHighlight: 'Achievers',
     subtitle: 'Real journeys. Real people. Real results. Be inspired by our students who turned their dreams into reality with Nermai.',
     scriptTopLeft: 'Learn\nPrepare\nSucceed',
+    scriptTopRight: 'Different\nAspirations\nOne\nDestination',
 
     toppersSubheading: 'OUR TOPPERS',
     toppersDesc: 'Meet our achievers who made it happen with dedication, guidance and the Nermai way.',
     toppersViewAllText: 'View All Toppers',
     toppersViewAllLink: '/results',
+
+    resultsGalleryHeading: 'RESULTS GALLERY',
+    resultsGalleryDesc: 'Various batch results, selections and achievement posters from Nermai IAS Academy.',
+    resultsGalleryViewAllText: 'View Full Gallery',
+    resultsGalleryViewAllLink: '/results',
+    showResultsGallery: true,
 
     feature1Icon: 'fa-trophy',
     feature1Title: 'Expert Guidance',
@@ -1543,14 +1567,12 @@ const DEFAULTS = {
     feature3Icon: 'fa-chart-line',
     feature3Title: 'Proven Results',
     feature3Desc: 'Across competitive exams',
-
-    testimonialsHeading: 'TESTIMONIALS',
-    testimonialsSubtitle: 'Honest feedback from our students.',
-    testimonialsScript: 'Real Stories\nReal Impact',
+    feature4Icon: 'fa-users',
+    feature4Title: 'Diverse Backgrounds',
+    feature4Desc: 'Students from towns, cities and rural areas',
 
     showScriptTopLeft: true,
     showBottomFeatures: true,
-    showTestimonials: true,
     showToppers: true
   },
   events: [

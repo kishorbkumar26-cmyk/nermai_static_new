@@ -70,34 +70,45 @@ export default function Hero({ autoPlayInterval = 6000 }) {
 
   return (
     <section className="hero-banner-container">
-      {/* Only render the active slide — BannerSlide animates in via CSS */}
-      <BannerSlide
-        key={currentIndex}
-        banner={banners[currentIndex]}
-        isActive={true}
-      />
+      {/* Slide Image Viewport */}
+      <div className="hero-slide-viewport">
+        <BannerSlide
+          key={currentIndex}
+          banner={banners[currentIndex]}
+          isActive={true}
+        />
+      </div>
 
-      <button
-        className="hero-arrow hero-arrow--prev"
-        onClick={() => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length)}
-        aria-label="Previous slide"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
+      {/* Hero Bottom Controls: Prev Arrow, Indicators, Next Arrow */}
+      {banners.length > 1 && (
+        <div className="hero-bottom-controls">
+          <button
+            type="button"
+            className="hero-arrow hero-arrow--prev"
+            onClick={() => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length)}
+            aria-label="Previous slide"
+            title="Previous slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
 
-      <button
-        className="hero-arrow hero-arrow--next"
-        onClick={() => setCurrentIndex((prev) => (prev + 1) % banners.length)}
-        aria-label="Next slide"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-      </button>
+          <BannerIndicators
+            total={banners.length}
+            current={currentIndex}
+            onChange={setCurrentIndex}
+          />
 
-      <BannerIndicators
-        total={banners.length}
-        current={currentIndex}
-        onChange={setCurrentIndex}
-      />
+          <button
+            type="button"
+            className="hero-arrow hero-arrow--next"
+            onClick={() => setCurrentIndex((prev) => (prev + 1) % banners.length)}
+            aria-label="Next slide"
+            title="Next slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      )}
     </section>
   );
 }

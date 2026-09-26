@@ -338,6 +338,7 @@ export default function AdminImageUpload({
                 key={imgSrc}
                 src={imgSrc}
                 alt="Preview"
+                referrerPolicy="no-referrer"
                 onLoad={e => setNaturalDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
                 onError={handleImgError}
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}

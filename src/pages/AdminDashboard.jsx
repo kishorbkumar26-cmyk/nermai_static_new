@@ -9,6 +9,7 @@ import FaqAdminSection from '../components/admin/FaqAdminSection'
 import TopBarAdminSection from '../components/admin/TopBarAdminSection'
 import WhyNermaiAdminSection from '../components/admin/WhyNermaiAdminSection'
 import ContactAdminSection from '../components/admin/ContactAdminSection'
+import FreeResourcesAdminSection from '../components/admin/FreeResourcesAdminSection'
 import { fbFirestore } from '../firebase/firestore'
 
 /* ─── Toast ─────────────────────────────────────────────────────────────── */
@@ -301,12 +302,13 @@ export default function AdminDashboard() {
           {active === 'faq'      && <FaqAdminSection toast={toast} />}
           {active === 'results'  && <ResultsGallerySection toast={toast} />}
           {active === 'footer'   && <FooterContentSection toast={toast} />}
+          {active === 'resources' && <FreeResourcesAdminSection toast={toast} />}
           {active === 'officeLocs' && <OfficeLocationsSection toast={toast} />}
           {active === 'siteVisibility' && <SiteVisibilitySection toast={toast} />}
           {active === 'settings' && <SettingsSection toast={toast} />}
 
           {/* Reused from AdminPortal (via named export) */}
-          {!['contact', 'topbar', 'whynermai', 'courses', 'faq', 'results', 'footer', 'officeLocs', 'siteVisibility', 'settings'].includes(active) && (
+          {!['contact', 'topbar', 'whynermai', 'courses', 'faq', 'results', 'footer', 'resources', 'officeLocs', 'siteVisibility', 'settings'].includes(active) && (
             <AdminPanelContent activeSection={active} toast={toast} />
           )}
         </div>

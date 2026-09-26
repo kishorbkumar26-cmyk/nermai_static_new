@@ -179,7 +179,102 @@ export const DEFAULT_SUCCESS_STORIES_CONFIG = {
   testimonialsScript: 'Real Stories Real Impact'
 }
 
+export const DEFAULT_FREE_RESOURCES_SETTINGS = {
+  homeSectionVisible: true,
+  eyebrow: 'FREE RESOURCES',
+  title: 'Learn. Prepare. Grow.',
+  highlightWord: 'For Free.',
+  description: 'Access high-quality study materials, daily updates, magazines and more — shared by Nermai for every aspirant.',
+  badges: [
+    { id: 'b1', icon: 'fa-shield-halved', label: 'Curated by Experts' },
+    { id: 'b2', icon: 'fa-file-lines', label: 'Updated Regularly' },
+    { id: 'b3', icon: 'fa-users', label: 'All in One Place' },
+    { id: 'b4', icon: 'fa-database', label: 'Direct from Official Sources' },
+  ],
+  sloganRight: 'Knowledge\nToday\nA Stronger\nTomorrow',
+  heroBgUrl: '/free-resources-books.png',
+  heroSideImgUrl: '/free-resources-books.png',
+
+  searchPlaceholder: 'Search resources (e.g. Polity Notes, CA PDF, Monthly Magazine...)',
+  filterDayLabel: 'Day',
+  filterMonthLabel: 'Month',
+  filterYearLabel: 'Year',
+  filterSubjectLabel: 'Subject',
+  filterTypeLabel: 'Resource Type',
+  applyBtnText: 'Apply',
+  resetBtnText: 'Reset',
+
+  quickFiltersTitle: 'Quick Filters',
+  quickFilterToday: "Today's Resources",
+  quickFilterWeek: 'This Week',
+  quickFilterMonth: 'This Month',
+  quickFilterAll: 'All Resources',
+  subjectsTitle: 'Subjects',
+  resourceTypesTitle: 'Resource Type',
+
+  todaysTitle: "Today's Resources",
+  todaysArchiveLinkText: 'View Full Daily Archive',
+
+  weeklyTitle: 'Weekly Magazines',
+  weeklySubtitle: 'Curated weekly compilations for comprehensive revision.',
+  weeklyViewAllText: 'View All',
+
+  monthlyTitle: 'Monthly Magazines',
+  monthlySubtitle: 'Access monthly current affairs and subject-wise compilations.',
+  monthlyViewAllText: 'View All',
+
+  archiveTitle: 'Past Resources Archive',
+  archiveSubtitle: 'Browse all previous resources by date, month or year.',
+  archiveViewAllText: 'View All',
+  tabDaily: 'Daily Content',
+  tabWeekly: 'Weekly Magazines',
+  tabMonthly: 'Monthly Magazines',
+  tabYear: 'Year-wise',
+  tabSubject: 'Subject-wise',
+
+  popularTitle: 'Popular Resources',
+  popularViewAllText: 'View All',
+
+  previewBtnText: 'Preview',
+  downloadBtnText: 'Download',
+  viewFullScreenBtnText: 'View Full Screen',
+  relatedResourcesTitle: 'Related Resources',
+
+  noResultsTitle: 'No resources found',
+  noResultsDesc: 'Try adjusting your search keywords or filter selections.',
+  downloadSuccessTitle: 'Download Started',
+  downloadSuccessMsg: 'Your PDF file is downloading. Check your browser downloads.',
+
+  // Admin Customizable Subjects & Types
+  customSubjects: [
+    'Current Affairs',
+    'General Studies (GS)',
+    'Polity',
+    'History',
+    'Geography',
+    'Economy',
+    'Science & Technology',
+    'Environment & Ecology',
+    'Tamil Nadu (TN)',
+    'Previous Year Papers',
+    'Others'
+  ],
+  customTypes: [
+    'Daily Content',
+    'Weekly Magazine',
+    'Monthly Magazine',
+    'Notes',
+    'Previous Year Questions',
+    'Test Series',
+    'Infographics',
+    'Editorial',
+    'Others'
+  ],
+}
+
 const DEFAULT_SETTINGS = {
+  freeResourcesVisibility: true,
+  freeResourcesPage: DEFAULT_FREE_RESOURCES_SETTINGS,
   whyNermai: DEFAULT_WHY_NERMAI,
   whyNermaiShowcase: DEFAULT_WHY_NERMAI_SHOWCASE,
   successStories: DEFAULT_SUCCESS_STORIES_CONFIG,
@@ -190,7 +285,8 @@ const DEFAULT_SETTINGS = {
     notices: true,
     gallery: true,
     toppers: true,
-    testimonials: true
+    testimonials: true,
+    freeResources: true
   },
   driveConfig: {
     appsScriptUrl: '',
@@ -948,6 +1044,7 @@ export const fbFirestore = {
     return await addDoc(galleryCol(), {
       url: data.url || '',
       caption: data.caption || '',
+      category: data.category || 'all',
       storageType: data.storageType || 'url',
       createdAt: serverTimestamp()
     })
@@ -989,6 +1086,17 @@ export const fbFirestore = {
   },
   async deleteResource(id) {
     await deleteDoc(doc(db, 'resources', id))
+  },
+  async getFreeResourcesSettings() {
+    try {
+      const s = await this.getSettings()
+      return s?.freeResourcesPage || DEFAULT_FREE_RESOURCES_SETTINGS
+    } catch {
+      return DEFAULT_FREE_RESOURCES_SETTINGS
+    }
+  },
+  async updateFreeResourcesSettings(data) {
+    return await this.updateSettings({ freeResourcesPage: data })
   },
 
 

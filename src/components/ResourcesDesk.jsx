@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { fbFirestore } from '../firebase/firestore'
 
 // ── Format metadata helper ────────────────────────────────────────────────────
@@ -111,22 +112,44 @@ export default function ResourcesDesk({ isWidget = false }) {
             }} />
           </div>
 
-          {filtered.length > 5 && (
-            <span style={{ 
-              fontSize: '0.8rem', 
-              color: 'var(--gray-600)', 
-              fontWeight: 600,
-              background: 'var(--gray-100)',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '20px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}>
-              <i className="fa-solid fa-arrow-down" style={{ fontSize: '0.75rem', color: 'var(--maroon)' }} />
-              Scroll to view all ({filtered.length})
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <Link
+              to="/free-resources"
+              style={{
+                fontSize: '0.84rem',
+                color: 'var(--maroon)',
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: 'rgba(123, 27, 46, 0.08)',
+                padding: '0.4rem 0.95rem',
+                borderRadius: '20px',
+                border: '1px solid rgba(123, 27, 46, 0.2)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Open Full Library & Daily Archive <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.72rem' }} />
+            </Link>
+
+            {filtered.length > 5 && (
+              <span style={{ 
+                fontSize: '0.8rem', 
+                color: 'var(--gray-600)', 
+                fontWeight: 600,
+                background: 'var(--gray-100)',
+                padding: '0.35rem 0.75rem',
+                borderRadius: '20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}>
+                <i className="fa-solid fa-arrow-down" style={{ fontSize: '0.75rem', color: 'var(--maroon)' }} />
+                Scroll all ({filtered.length})
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Category Tabs */}

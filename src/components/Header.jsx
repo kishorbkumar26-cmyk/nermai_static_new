@@ -277,11 +277,10 @@ export default function Header() {
                 Courses
               </Link>
 
-              {/* Free Content (Moves to Free Resource part above location on Home) */}
+              {/* Free Content (Navigates to dedicated Free Resources Page) */}
               <Link 
-                to="/#free-resources" 
-                onClick={handleFreeContentClick}
-                className={`nav-link-btn ${location.hash === '#free-resources' ? 'active nav-active-pill' : ''}`}
+                to="/free-resources" 
+                className={`nav-link-btn ${location.pathname === '/free-resources' ? 'active nav-active-pill' : ''}`}
               >
                 Free Content
               </Link>
@@ -395,9 +394,9 @@ export default function Header() {
         <div className="mobile-overlay" onClick={closeMobileNav} aria-hidden="true" />
       )}
       <nav className={`mobile-nav${mobileOpen ? ' open' : ''}`} aria-label="Mobile navigation">
-        <div className="mobile-nav-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} style={{ width: '42px', height: '42px', objectFit: 'contain', borderRadius: '50%' }} onError={(e) => driveStorage.handleImageError(e, '/nermai-logo.png')} />
-          <span style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', color: '#FFF' }}>
+        <div className="mobile-nav-header" style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <img src={branding.logoUrl || '/nermai-logo.png'} alt={`${branding.title || 'NERMAI'} Logo`} style={{ width: '54px', height: '54px', objectFit: 'contain', borderRadius: '50%', border: '1.5px solid #F5D061' }} onError={(e) => driveStorage.handleImageError(e, '/nermai-logo.png')} />
+          <span style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '0.05em', color: '#FFF' }}>
             {branding.title || 'NERMAI'} {branding.subtitle || 'IAS ACADEMY'}
           </span>
           <button className="mobile-nav-close" onClick={closeMobileNav} aria-label="Close menu">
@@ -409,7 +408,7 @@ export default function Header() {
           <Link to="/" className="mobile-nav-link" onClick={closeMobileNav}>Home</Link>
           <Link to="/why-nermai" className="mobile-nav-link" onClick={closeMobileNav}>Why Nermai</Link>
           <Link to="/courses" className="mobile-nav-link" onClick={closeMobileNav}>Courses</Link>
-          <Link to="/#free-resources" className="mobile-nav-link" onClick={handleFreeContentClick}>Free Content</Link>
+          <Link to="/free-resources" className="mobile-nav-link" onClick={closeMobileNav}>Free Content</Link>
           <Link to="/results" className="mobile-nav-link" onClick={closeMobileNav}>Results</Link>
           <Link to="/contact#faq" className="mobile-nav-link" onClick={closeMobileNav}>FAQ</Link>
           <Link to="/contact" className="mobile-nav-link" onClick={closeMobileNav}>Contact Us</Link>

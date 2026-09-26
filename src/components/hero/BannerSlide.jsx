@@ -45,7 +45,7 @@ export default function BannerSlide({ banner, isActive }) {
       }}
     >
       {!failed ? (
-        <picture style={{ display: 'block', width: '100%' }}>
+        <picture className="hero-slide-picture" style={{ display: 'block', width: '100%' }}>
           {mobSrc && mobSrc !== imgSrc && (
             <source media="(max-width: 768px)" srcSet={mobSrc} />
           )}
@@ -53,6 +53,7 @@ export default function BannerSlide({ banner, isActive }) {
             key={imgSrc}
             src={imgSrc}
             alt="Promotional Banner"
+            className="hero-slide-img"
             style={{ width: '100%', height: 'auto', display: 'block' }}
             draggable="false"
             onError={handleError}

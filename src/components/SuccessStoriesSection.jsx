@@ -17,10 +17,11 @@ export const DEFAULT_SUCCESS_STORIES_CONFIG = {
   toppersViewAllText: 'View All Toppers',
   toppersViewAllLink: '/results',
 
-  testimonialsHeading: 'TESTIMONIALS',
-  testimonialsSubtitle: 'Honest feedback from our students.',
-  testimonialsScript: 'Real Stories. Real Impact.',
-  showTestimonials: true,
+  resultsGalleryHeading: 'RESULTS GALLERY',
+  resultsGalleryDesc: 'Various batch results, selections and achievement posters from Nermai IAS Academy.',
+  resultsGalleryViewAllText: 'View Full Gallery',
+  resultsGalleryViewAllLink: '/results',
+  showResultsGallery: true,
 
   feature1Icon: 'fa-trophy',
   feature1Title: 'Expert Guidance',
@@ -84,21 +85,29 @@ function matchCategory(topper, targetCategoryId) {
 export default function SuccessStoriesSection({ customConfig }) {
   const [config, setConfig] = useState(customConfig || DEFAULT_SUCCESS_STORIES_CONFIG)
   const [toppers, setToppers] = useState([])
-  const [testimonials, setTestimonials] = useState([])
+  const [galleryImages, setGalleryImages] = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
   const [topperIndex, setTopperIndex] = useState(0)
-  const [testiIndex, setTestiIndex] = useState(0)
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const [selectedStory, setSelectedStory] = useState(null)
-  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false))
-  const touchStartX = useRef(null)
+  const [previewPoster, setPreviewPoster] = useState(null)
+  const [windowWidth, setWindowWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200))
+  
+  const topperTouchStartX = useRef(null)
+  const galleryTouchStartX = useRef(null)
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768)
+      setWindowWidth(window.innerWidth)
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Dynamic responsive items per view
+  const isMobile = windowWidth <= 768
+  const topperItemsPerView = windowWidth >= 1200 ? 6 : windowWidth >= 960 ? 4 : windowWidth >= 640 ? 2 : 1
+  const galleryItemsPerView = windowWidth >= 768 ? 2 : 1
 
   // ── Load Settings and Live Data (Actual Firestore Data Only) ──
   useEffect(() => {
@@ -132,50 +141,46 @@ export default function SuccessStoriesSection({ customConfig }) {
       }
     })
 
-    // 3. Testimonials Data (Actual live testimonials data from Admin/Firestore)
-    const unsubTesti = fbFirestore.onTestimonialsChanged?.(items => {
+    // 3. Gallery Posters / Banners Data (Actual live gallery data from Admin/Firestore)
+    const unsubGallery = fbFirestore.onGalleryChanged?.(items => {
       if (items && Array.isArray(items)) {
-        setTestimonials(items.filter(i => i && i.visible !== false))
+        setGalleryImages(items.filter(i => i && i.url))
       } else {
-        fbFirestore.getTestimonials?.().then(res => {
+        fbFirestore.getGallery?.().then(res => {
           if (res && Array.isArray(res)) {
-            setTestimonials(res.filter(i => i && i.visible !== false))
+            setGalleryImages(res.filter(i => i && i.url))
           } else {
-            setTestimonials([])
+            setGalleryImages([])
           }
-        }).catch(() => setTestimonials([]))
+        }).catch(() => setGalleryImages([]))
       }
     })
 
     return () => {
       unsubSettings && unsubSettings()
       unsubResults && unsubResults()
-      unsubTesti && unsubTesti()
+      unsubGallery && unsubGallery()
     }
   }, [])
 
-  // Filter actual toppers by selected category
+  // ── Toppers Filtering & Carousel Logic ──
   const filteredToppers = toppers.filter(t => matchCategory(t, activeCategory))
-  const totalCards = filteredToppers.length
-
-  // Visible toppers: 1 per view on mobile, 3 on desktop
-  const topperTouchStartX = useRef(null)
-  const topperItemsPerView = isMobile ? 1 : 3
-  const maxTopperIndex = Math.max(0, totalCards - topperItemsPerView)
+  const totalToppers = filteredToppers.length
+  const maxTopperIndex = Math.max(0, totalToppers - topperItemsPerView)
 
   useEffect(() => {
     if (topperIndex > maxTopperIndex) {
       setTopperIndex(0)
     }
-  }, [isMobile, maxTopperIndex, activeCategory])
+  }, [topperItemsPerView, maxTopperIndex, activeCategory])
 
   const handlePrevTopper = () => {
-    if (totalCards <= topperItemsPerView) return
+    if (totalToppers <= topperItemsPerView) return
     setTopperIndex(prev => (prev <= 0 ? maxTopperIndex : prev - 1))
   }
 
   const handleNextTopper = () => {
-    if (totalCards <= topperItemsPerView) return
+    if (totalToppers <= topperItemsPerView) return
     setTopperIndex(prev => (prev >= maxTopperIndex ? 0 : prev + 1))
   }
 
@@ -196,51 +201,50 @@ export default function SuccessStoriesSection({ customConfig }) {
     topperTouchStartX.current = null
   }
 
-  const visibleTopperCards = totalCards > topperItemsPerView
+  const visibleTopperCards = totalToppers > topperItemsPerView
     ? filteredToppers.slice(topperIndex, topperIndex + topperItemsPerView)
     : filteredToppers
 
-  // Testimonials: 1 per view on mobile, 3 on desktop
-  const itemsPerView = isMobile ? 1 : 3
-  const totalTestis = testimonials.length
-  const maxTestiIndex = Math.max(0, totalTestis - itemsPerView)
+  // ── Results Gallery Banners Carousel Logic ──
+  const totalGallery = galleryImages.length
+  const maxGalleryIndex = Math.max(0, totalGallery - galleryItemsPerView)
 
   useEffect(() => {
-    if (testiIndex > maxTestiIndex) {
-      setTestiIndex(0)
+    if (galleryIndex > maxGalleryIndex) {
+      setGalleryIndex(0)
     }
-  }, [isMobile, maxTestiIndex])
+  }, [galleryItemsPerView, maxGalleryIndex])
 
-  const handlePrevTesti = () => {
-    if (totalTestis <= itemsPerView) return
-    setTestiIndex(prev => (prev <= 0 ? maxTestiIndex : prev - 1))
+  const handlePrevGallery = () => {
+    if (totalGallery <= galleryItemsPerView) return
+    setGalleryIndex(prev => (prev <= 0 ? maxGalleryIndex : prev - 1))
   }
 
-  const handleNextTesti = () => {
-    if (totalTestis <= itemsPerView) return
-    setTestiIndex(prev => (prev >= maxTestiIndex ? 0 : prev + 1))
+  const handleNextGallery = () => {
+    if (totalGallery <= galleryItemsPerView) return
+    setGalleryIndex(prev => (prev >= maxGalleryIndex ? 0 : prev + 1))
   }
 
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX
+  const handleGalleryTouchStart = (e) => {
+    galleryTouchStartX.current = e.touches[0].clientX
   }
 
-  const handleTouchEnd = (e) => {
-    if (touchStartX.current === null) return
-    const diffX = touchStartX.current - e.changedTouches[0].clientX
+  const handleGalleryTouchEnd = (e) => {
+    if (galleryTouchStartX.current === null) return
+    const diffX = galleryTouchStartX.current - e.changedTouches[0].clientX
     if (Math.abs(diffX) > 40) {
       if (diffX > 0) {
-        handleNextTesti()
+        handleNextGallery()
       } else {
-        handlePrevTesti()
+        handlePrevGallery()
       }
     }
-    touchStartX.current = null
+    galleryTouchStartX.current = null
   }
 
-  const visibleTestimonials = totalTestis > itemsPerView
-    ? testimonials.slice(testiIndex, testiIndex + itemsPerView)
-    : testimonials
+  const visibleGalleryCards = totalGallery > galleryItemsPerView
+    ? galleryImages.slice(galleryIndex, galleryIndex + galleryItemsPerView)
+    : galleryImages
 
   return (
     <section className="ss-unified-section" id="success-stories">
@@ -336,7 +340,7 @@ export default function SuccessStoriesSection({ customConfig }) {
               type="button"
               className="ss-carousel-arrow-btn ss-topper-prev"
               onClick={handlePrevTopper}
-              disabled={totalCards <= topperItemsPerView}
+              disabled={totalToppers <= topperItemsPerView}
               title="Previous achiever"
               aria-label="Previous achiever"
             >
@@ -350,6 +354,7 @@ export default function SuccessStoriesSection({ customConfig }) {
                     const photoUrl = t.photo ? driveStorage.formatImageUrl(t.photo, 1000) : null
                     let rankNum = (t.rank || '1').toString().replace(/[^0-9]/g, '')
                     if (!rankNum) rankNum = t.rank || '1'
+                    const isAir = t.isAir !== false && (t.rankType === 'air' || !t.rankType || String(t.rank).toLowerCase().includes('air'))
 
                     return (
                       <div
@@ -357,13 +362,14 @@ export default function SuccessStoriesSection({ customConfig }) {
                         className="ss-topper-card"
                         onClick={() => setSelectedStory(t)}
                       >
-                        {/* Left: Photo */}
+                        {/* Top: Photo with Gold Rank Badge */}
                         <div className="ss-topper-photo-wrap">
                           {photoUrl ? (
                             <img
                               src={photoUrl}
                               alt={t.name}
                               className="ss-topper-photo"
+                              referrerPolicy="no-referrer"
                               onError={(e) => driveStorage.handleImageError(e, '')}
                             />
                           ) : (
@@ -371,23 +377,20 @@ export default function SuccessStoriesSection({ customConfig }) {
                               <span>{t.name ? t.name.charAt(0) : '★'}</span>
                             </div>
                           )}
-                        </div>
 
-                        {/* Right: Info & Gold Rank Badge */}
-                        <div className="ss-topper-info-wrap">
                           <div className="ss-topper-rank-badge">
-                            <i className="fa-solid fa-crown ss-badge-crown" />
-                            <span className="ss-rank-air-lbl">AIR</span>
+                            {isAir && <i className="fa-solid fa-crown ss-badge-crown" />}
+                            <span className="ss-rank-air-lbl">{isAir ? 'AIR' : 'Rank'}</span>
                             <span className="ss-rank-number">{rankNum}</span>
                           </div>
+                        </div>
 
+                        {/* Bottom: Info Bar */}
+                        <div className="ss-topper-info-wrap">
                           <h3 className="ss-topper-name">{t.name}</h3>
                           <div className="ss-topper-exam">
                             {t.exam || 'Civil Services'}{t.year ? ` (${t.year})` : ''}
                           </div>
-                          {t.quote && (
-                            <p className="ss-topper-quote">"{t.quote}"</p>
-                          )}
                         </div>
                       </div>
                     )
@@ -411,7 +414,7 @@ export default function SuccessStoriesSection({ customConfig }) {
               type="button"
               className="ss-carousel-arrow-btn ss-topper-next"
               onClick={handleNextTopper}
-              disabled={totalCards <= topperItemsPerView}
+              disabled={totalToppers <= topperItemsPerView}
               title="Next achiever"
               aria-label="Next achiever"
             >
@@ -420,108 +423,133 @@ export default function SuccessStoriesSection({ customConfig }) {
           </div>
 
           {/* Topper Carousel Dots */}
-          {totalCards > topperItemsPerView && (
+          {totalToppers > topperItemsPerView && (
             <div className="ss-topper-dots-row">
-              {Array.from({ length: isMobile ? totalCards : Math.min(5, Math.max(1, totalCards - 2)) }).map((_, dIdx) => (
+              {Array.from({ length: Math.min(6, Math.max(2, totalToppers - topperItemsPerView + 1)) }).map((_, dIdx) => (
                 <button
                   key={dIdx}
                   type="button"
                   className={`ss-testi-dot ${topperIndex === dIdx ? 'active' : ''}`}
                   onClick={() => setTopperIndex(dIdx)}
-                  aria-label={`Achiever ${dIdx + 1}`}
+                  aria-label={`Achiever group ${dIdx + 1}`}
                 />
               ))}
             </div>
           )}
         </div>
 
-        {/* ════════ ROW 2: TESTIMONIALS ════════ */}
-        {config.showTestimonials !== false && <div className="ss-testimonials-section">
-          <div className="ss-section-header-row">
-            <div className="ss-section-title-wrap">
-              <div className="ss-section-badge-title">
-                <span className="ss-quote-icon-txt">❝</span>
-                <span>{config.testimonialsHeading || 'TESTIMONIALS'}</span>
-                <span className="ss-title-line" />
+        {/* ════════ ROW 2: RESULTS GALLERY (ADDITIONAL BANNER SECTION) ════════ */}
+        {config.showResultsGallery !== false && (
+          <div className="ss-gallery-section">
+            <div className="ss-section-header-row">
+              <div className="ss-section-title-wrap">
+                <div className="ss-section-badge-title">
+                  <i className="fa-regular fa-images ss-crown-icon" />
+                  <span>{config.resultsGalleryHeading || 'RESULTS GALLERY'}</span>
+                  <span className="ss-title-line" />
+                </div>
+                <p className="ss-section-desc">
+                  {config.resultsGalleryDesc || 'Various batch results, selections and achievement posters from Nermai IAS Academy.'}
+                </p>
               </div>
-              <p className="ss-section-desc">
-                {config.testimonialsSubtitle || 'Honest feedback from our students.'}
-              </p>
+
+              <Link to={config.resultsGalleryViewAllLink || '/results'} className="ss-view-all-link">
+                <span>{config.resultsGalleryViewAllText || 'View Full Gallery'}</span>
+                <i className="fa-solid fa-arrow-right" />
+              </Link>
             </div>
 
-            <div className="ss-testi-handwritten-badge" aria-hidden="true">
-              {config.testimonialsScript || 'Real Stories. Real Impact.'}
-            </div>
-          </div>
-
-          {/* Testimonials Carousel Row */}
-          <div
-            className="ss-testi-carousel-row"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <button
-              type="button"
-              className="ss-carousel-arrow-btn ss-carousel-prev"
-              onClick={handlePrevTesti}
-              disabled={totalTestis <= itemsPerView}
-              title="Previous testimonial"
-              aria-label="Previous testimonial"
+            {/* Gallery Carousel Row */}
+            <div
+              className="ss-gallery-carousel-row"
+              onTouchStart={handleGalleryTouchStart}
+              onTouchEnd={handleGalleryTouchEnd}
             >
-              <i className="fa-solid fa-chevron-left" />
-            </button>
-
-            <div className="ss-testi-cards-grid">
-              {visibleTestimonials.map((t, idx) => {
-                const initial = t.name ? t.name.trim().charAt(0).toUpperCase() : '★'
-                return (
-                  <div key={t.id || (t.name ? t.name + idx : idx)} className="ss-testi-white-card">
-                    <div className="ss-card-top-quote-mark">❝</div>
-                    <p className="ss-testi-quote-body">
-                      {t.quote || t.text || t.content}
-                    </p>
-                    <div className="ss-testi-author-row">
-                      <div className="ss-author-avatar-circle">
-                        {initial}
-                      </div>
-                      <div className="ss-author-details">
-                        <div className="ss-author-name">{t.name}</div>
-                        <div className="ss-author-role">{t.role || t.exam || 'Nermai Aspirant'}</div>
-                      </div>
-                    </div>
-                    <div className="ss-card-watermark-quote" aria-hidden="true">❞</div>
+              <div className="ss-gallery-grid-wrapper">
+                {visibleGalleryCards.length > 0 ? (
+                  <div className="ss-gallery-cards-grid">
+                    {visibleGalleryCards.map((item, idx) => {
+                      const imgUrl = driveStorage.formatImageUrl(item.url, 1800) || item.url
+                      return (
+                        <div
+                          key={item.id || idx}
+                          className="ss-gallery-poster-card"
+                          onClick={() => setPreviewPoster(item)}
+                          title="Click to preview poster"
+                        >
+                          <div className="ss-poster-frame">
+                            <img
+                              src={imgUrl}
+                              alt={item.caption || 'Achievement Poster'}
+                              className="ss-poster-img"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => driveStorage.handleImageError(e, '')}
+                            />
+                            <div className="ss-poster-fallback" style={{ display: 'none', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#F5D061', padding: '1rem' }}>
+                              <i className="fa-regular fa-image" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }} />
+                              <span style={{ fontSize: '0.85rem', color: '#FAF7F2', fontWeight: 600 }}>{item.caption || 'Achievement Poster'}</span>
+                            </div>
+                            <div className="ss-poster-overlay">
+                              <span className="ss-poster-zoom-btn">
+                                <i className="fa-solid fa-expand" /> Preview
+                              </span>
+                              {item.caption && <span className="ss-poster-caption-tag">{item.caption}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                )
-              })}
+                ) : (
+                  <div className="ss-no-toppers-box">
+                    <i className="fa-regular fa-images" style={{ fontSize: '1.75rem', color: '#F5D061', marginBottom: '0.5rem' }} />
+                    <h4>Results & Selection Posters</h4>
+                    <p>Posters uploaded in the Admin Results Gallery will automatically appear here.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="ss-carousel-arrow-btn ss-carousel-next"
-              onClick={handleNextTesti}
-              disabled={totalTestis <= itemsPerView}
-              title="Next testimonial"
-              aria-label="Next testimonial"
-            >
-              <i className="fa-solid fa-chevron-right" />
-            </button>
-          </div>
-
-          {/* Carousel Dots */}
-          {totalTestis > itemsPerView && (
-            <div className="ss-testi-dots-row">
-              {Array.from({ length: isMobile ? totalTestis : Math.min(4, Math.max(1, totalTestis - 2)) }).map((_, dIdx) => (
+            {/* Bottom Navigation Controls: Left Arrow, Dots, Right Arrow */}
+            {totalGallery > galleryItemsPerView && (
+              <div className="ss-gallery-bottom-controls">
                 <button
-                  key={dIdx}
                   type="button"
-                  className={`ss-testi-dot ${testiIndex === dIdx ? 'active' : ''}`}
-                  onClick={() => setTestiIndex(dIdx)}
-                  aria-label={`Slide ${dIdx + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>}
+                  className="ss-carousel-arrow-btn ss-gallery-prev"
+                  onClick={handlePrevGallery}
+                  disabled={totalGallery <= galleryItemsPerView}
+                  title="Previous poster"
+                  aria-label="Previous poster"
+                >
+                  <i className="fa-solid fa-chevron-left" />
+                </button>
+
+                <div className="ss-gallery-dots-row">
+                  {Array.from({ length: Math.min(5, Math.max(2, totalGallery - galleryItemsPerView + 1)) }).map((_, dIdx) => (
+                    <button
+                      key={dIdx}
+                      type="button"
+                      className={`ss-testi-dot ${galleryIndex === dIdx ? 'active' : ''}`}
+                      onClick={() => setGalleryIndex(dIdx)}
+                      aria-label={`Gallery page ${dIdx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="ss-carousel-arrow-btn ss-gallery-next"
+                  onClick={handleNextGallery}
+                  disabled={totalGallery <= galleryItemsPerView}
+                  title="Next poster"
+                  aria-label="Next poster"
+                >
+                  <i className="fa-solid fa-chevron-right" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ════════ ROW 3: BOTTOM 4 FEATURES BAR ════════ */}
         <div className="ss-bottom-features-bar">
@@ -571,6 +599,32 @@ export default function SuccessStoriesSection({ customConfig }) {
 
       </div>
 
+      {/* ── Full Size Poster Lightbox Modal ── */}
+      {previewPoster && (
+        <div className="ss-lightbox-overlay" onClick={() => setPreviewPoster(null)}>
+          <div className="ss-lightbox-content" onClick={e => e.stopPropagation()}>
+            <button className="ss-lightbox-close" onClick={() => setPreviewPoster(null)} type="button" aria-label="Close preview">
+              <i className="fa-solid fa-xmark" />
+            </button>
+            <div className="ss-lightbox-img-wrap">
+              <img
+                src={driveStorage.formatImageUrl(previewPoster.url, 1800) || previewPoster.url}
+                alt={previewPoster.caption || 'Result Poster'}
+                className="ss-lightbox-img"
+                referrerPolicy="no-referrer"
+                onError={(e) => driveStorage.handleImageError(e, '')}
+              />
+            </div>
+            {previewPoster.caption && (
+              <div className="ss-lightbox-caption">
+                <i className="fa-solid fa-award ss-lightbox-icon" />
+                <span>{previewPoster.caption}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Topper Story Modal ── */}
       {selectedStory && (
         <div className="rp-modal-overlay" onClick={() => setSelectedStory(null)}>
@@ -584,7 +638,7 @@ export default function SuccessStoriesSection({ customConfig }) {
                   src={driveStorage.formatImageUrl(selectedStory.photo, 1000)}
                   alt={selectedStory.name}
                   className="rp-modal-photo"
-                  crossOrigin={driveStorage.formatImageUrl(selectedStory.photo)?.includes('lh3.google') ? 'anonymous' : undefined}
+                  referrerPolicy="no-referrer"
                   onError={(e) => driveStorage.handleImageError(e, '')}
                 />
               )}
@@ -621,3 +675,4 @@ export default function SuccessStoriesSection({ customConfig }) {
     </section>
   )
 }
+

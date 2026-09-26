@@ -813,15 +813,35 @@ export default function CourseContentSection({ toast }) {
           </div>
 
           {/* Sub-tabs for detail page */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.25rem', borderBottom: '2px solid var(--gray-200)', paddingBottom: '0.5rem' }}>
-            {['content', 'overview', 'curriculum', 'faqs'].map(tab => (
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '1.25rem', borderBottom: '2px solid var(--gray-200)', paddingBottom: '0.65rem' }}>
+            {[
+              { id: 'content', label: '1. Header & Summary', icon: 'fa-solid fa-heading' },
+              { id: 'overview', label: '2. Course Overview & Batch', icon: 'fa-solid fa-align-left' },
+              { id: 'curriculum', label: '3. Syllabus & What You Learn', icon: 'fa-solid fa-list-check' },
+              { id: 'faqs', label: '4. Course FAQs', icon: 'fa-solid fa-circle-question' }
+            ].map(tab => (
               <button
-                key={tab}
-                className={`ap-tab-btn ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-                style={{ textTransform: 'capitalize' }}
+                key={tab.id}
+                type="button"
+                className="btn"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '0.55rem 1.15rem',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: activeTab === tab.id ? '2px solid var(--maroon)' : '1px solid var(--gray-300)',
+                  background: activeTab === tab.id ? 'var(--maroon)' : '#ffffff',
+                  color: activeTab === tab.id ? '#ffffff' : 'var(--ink)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  boxShadow: activeTab === tab.id ? '0 2px 8px rgba(123, 27, 46, 0.25)' : 'none'
+                }}
               >
-                {tab}
+                <i className={tab.icon} />
+                {tab.label}
               </button>
             ))}
           </div>
@@ -830,7 +850,7 @@ export default function CourseContentSection({ toast }) {
           {loading ? (
             <div className="ap-empty"><i className="fa-solid fa-spinner fa-spin" /><p>Loading course content...</p></div>
           ) : (
-            <div className="ap-card" style={{ marginBottom: '1.5rem' }}>
+            <div className="ap-card" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
               {activeTab === 'content' && (
                 <div>
                   <div className="ap-form-row">
@@ -840,17 +860,86 @@ export default function CourseContentSection({ toast }) {
                   <Field label="Short Description" value={content.description} onChange={v => update('description', v)} type="textarea" rows={2} />
                   <div className="ap-form-row">
                     <Field label="Enroll Button CTA Text" value={content.ctaText} onChange={v => update('ctaText', v)} placeholder="Enroll Now" />
-                    <Field label="Eligibility Summary" value={content.eligibility} onChange={v => update('eligibility', v)} placeholder="Any Graduate" />
+                  </div>
+
+                  {/* ⭐ What's Included (Key Features Sidebar) Editor */}
+                  <div style={{ marginTop: '1.5rem', background: '#FFFDF9', padding: '1.25rem', borderRadius: '10px', border: '1.5px solid #F3E8DF' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                      <div>
+                        <strong style={{ fontSize: '0.95rem', color: '#7B1B2E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <i className="fa-solid fa-star" style={{ color: 'var(--gold)' }} />
+                          What's Included / Key Highlights (Sidebar Card &amp; Hero)
+                        </strong>
+                        <p style={{ margin: '3px 0 0', fontSize: '0.78rem', color: 'var(--gray-500)' }}>
+                          Line-by-line bullet points shown in the "What's Included" card on the right sidebar and course banner.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                        onClick={() => {
+                          const current = Array.isArray(content.features) ? content.features : []
+                          update('features', [...current, ''])
+                        }}
+                      >
+                        <i className="fa-solid fa-plus" /> Add Bullet Point
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                      {((Array.isArray(content.features) && content.features.length > 0)
+                        ? content.features
+                        : ['1000+ hours offline coaching', '100+ Prelims/Mains mock tests', 'Comprehensive study materials', 'Regular mentor sessions']
+                      ).map((feat, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{ color: '#16a34a', fontSize: '1rem' }}>
+                            <i className="fa-solid fa-circle-check" />
+                          </span>
+                          <input
+                            type="text"
+                            className="ap-input"
+                            style={{ flex: 1 }}
+                            placeholder={`e.g. 1000+ hours offline coaching`}
+                            value={typeof feat === 'string' ? feat : (feat?.text || '')}
+                            onChange={e => {
+                              const list = Array.isArray(content.features) ? [...content.features] : ['1000+ hours offline coaching', '100+ Prelims/Mains mock tests', 'Comprehensive study materials', 'Regular mentor sessions']
+                              list[idx] = e.target.value
+                              update('features', list)
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ color: '#dc2626', borderColor: '#fca5a5', padding: '0.35rem 0.6rem' }}
+                            title="Remove feature"
+                            onClick={() => {
+                              const list = Array.isArray(content.features) ? [...content.features] : ['1000+ hours offline coaching', '100+ Prelims/Mains mock tests', 'Comprehensive study materials', 'Regular mentor sessions']
+                              const updated = list.filter((_, i) => i !== idx)
+                              update('features', updated)
+                            }}
+                          >
+                            <i className="fa-solid fa-trash-can" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <RichField label="Eligibility Criteria (Rich Editor with Bullets & Bold)" value={content.eligibility} onChange={v => update('eligibility', v)} />
                   </div>
                 </div>
               )}
 
               {activeTab === 'overview' && (
                 <div>
-                  <RichField label="Course Overview (Rich HTML)" value={content.overview} onChange={v => update('overview', v)} />
-                  <div style={{ marginTop: '1.5rem' }}>
-                    <Field label="Batch & Timing Info" value={content.batchInfo} onChange={v => update('batchInfo', v)} type="textarea" rows={3} />
-                    <Field label="Fee Structure" value={content.feeInfo} onChange={v => update('feeInfo', v)} type="textarea" rows={2} />
+                  <RichField label="About This Course / Course Overview (Rich HTML)" value={content.overview} onChange={v => update('overview', v)} />
+                  <div style={{ marginTop: '2rem' }}>
+                    <RichField label="Batch & Timing Information (Rich Editor)" value={content.batchInfo} onChange={v => update('batchInfo', v)} />
+                  </div>
+                  <div style={{ marginTop: '2rem' }}>
+                    <RichField label="Fee Structure & Details (Rich Editor)" value={content.feeInfo} onChange={v => update('feeInfo', v)} />
                   </div>
                 </div>
               )}

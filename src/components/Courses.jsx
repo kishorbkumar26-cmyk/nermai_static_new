@@ -300,7 +300,12 @@ export default function Courses({ hideHeader = false, layout = 'grid' }) {
   })
   const [activeCategory, setActiveCategory] = useState('all')
   const [activeIdx, setActiveIdx] = useState(0)
-  const [perView, setPerView] = useState(4)
+  const [perView, setPerView] = useState(() => {
+    if (typeof window === 'undefined') return 3
+    if (window.innerWidth < 768) return 1
+    if (window.innerWidth < 1100) return 2
+    return 3
+  })
 
   useEffect(() => {
     fbFirestore.getSettings().then(s => {
@@ -476,13 +481,6 @@ export default function Courses({ hideHeader = false, layout = 'grid' }) {
             {/* Course Cards Carousel / Slider */}
             <div className="replicated-carousel-wrapper">
               
-              {/* Left Nav Arrow */}
-              {total > perView && (
-                <button className="replicated-nav-arrow arrow-left" onClick={handlePrev} aria-label="Previous Courses">
-                  <ChevronLeft size={20} />
-                </button>
-              )}
-
               {/* Viewport & Track */}
               <div 
                 className="replicated-cards-viewport"
@@ -565,26 +563,39 @@ export default function Courses({ hideHeader = false, layout = 'grid' }) {
                 </div>
               </div>
 
-              {/* Right Nav Arrow */}
-              {total > perView && (
-                <button className="replicated-nav-arrow arrow-right" onClick={handleNext} aria-label="Next Courses">
-                  <ChevronRight size={20} />
-                </button>
-              )}
-
             </div>
 
-            {/* Pagination Dots */}
+            {/* Bottom Controls: Prev Arrow, Pagination Dots, Next Arrow */}
             {total > perView && (
-              <div className="replicated-courses-dots">
-                {Array.from({ length: maxOffset + 1 }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`courses-dot ${idx === currentOffset ? 'active' : ''}`}
-                    onClick={() => setActiveIdx(idx)}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
+              <div className="replicated-courses-bottom-controls">
+                <button 
+                  className="replicated-nav-arrow arrow-left" 
+                  onClick={handlePrev} 
+                  aria-label="Previous Courses"
+                  title="Previous Courses"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <div className="replicated-courses-dots">
+                  {Array.from({ length: maxOffset + 1 }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`courses-dot ${idx === currentOffset ? 'active' : ''}`}
+                      onClick={() => setActiveIdx(idx)}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                <button 
+                  className="replicated-nav-arrow arrow-right" 
+                  onClick={handleNext} 
+                  aria-label="Next Courses"
+                  title="Next Courses"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             )}
 

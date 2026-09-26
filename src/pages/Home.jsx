@@ -76,7 +76,7 @@ export default function Home() {
   const [journeySteps, setJourneySteps] = useState(undefined)
   const [visibility, setVisibility] = useState({
     stats: true, about: true, features: true, courses: true, steps: true,
-    results: true, gallery: true, testimonials: true
+    results: true, gallery: true, testimonials: true, freeResources: true
   })
 
   const location = useLocation()
@@ -88,6 +88,11 @@ export default function Home() {
       if (s.homeContent?.about) setAbout(ab => ({ ...DEFAULT_ABOUT, ...s.homeContent.about }))
       if (s.homeContent?.stats && Array.isArray(s.homeContent.stats)) setStats(s.homeContent.stats)
       if (s.homeContent?.visibility) setVisibility(v => ({ ...v, ...s.homeContent.visibility }))
+      if (s.freeResourcesPage?.homeSectionVisible !== undefined) {
+        setVisibility(v => ({ ...v, freeResources: s.freeResourcesPage.homeSectionVisible }))
+      } else if (s.freeResourcesVisibility !== undefined) {
+        setVisibility(v => ({ ...v, freeResources: s.freeResourcesVisibility }))
+      }
       if (s.homeContent?.journeySteps) setJourneySteps(s.homeContent.journeySteps)
     })
     return () => { if (typeof unsub === 'function') unsub() }
@@ -231,11 +236,13 @@ export default function Home() {
         {visibility.googleReviews !== false && <GoogleReviews />}
 
         {/* ── FREE LEARNING RESOURCES (Study Notes & Question Banks) ── */}
-        <section id="free-resources" className="section free-resources-section" style={{ background: 'var(--cream)', scrollMarginTop: '110px' }}>
-          <div className="container free-resources-container" style={{ maxWidth: '1440px', margin: '0 auto' }}>
-            <ResourcesDesk isWidget={true} />
-          </div>
-        </section>
+        {visibility.freeResources !== false && (
+          <section id="free-resources" className="section free-resources-section" style={{ background: 'var(--cream)', scrollMarginTop: '110px' }}>
+            <div className="container free-resources-container" style={{ maxWidth: '1440px', margin: '0 auto' }}>
+              <ResourcesDesk isWidget={true} />
+            </div>
+          </section>
+        )}
       </main>
 
       <OfficeLocations />
