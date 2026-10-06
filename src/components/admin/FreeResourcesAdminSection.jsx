@@ -1799,8 +1799,77 @@ export default function FreeResourcesAdminSection({ toast }) {
                       </div>
                     </div>
 
+                    {/* Live preview strip — reads directly from React state, always up-to-date */}
+                    {resourceForm.customThumbnailUrl && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        background: '#f0fdf4',
+                        border: '1.5px solid #86efac',
+                        borderRadius: '8px',
+                        padding: '0.75rem'
+                      }}>
+                        <img
+                          src={resourceForm.customThumbnailUrl}
+                          alt="Custom Thumbnail Preview"
+                          style={{
+                            width: '60px',
+                            height: '80px',
+                            objectFit: 'cover',
+                            borderRadius: '6px',
+                            border: '1.5px solid #bbf7d0',
+                            flexShrink: 0,
+                            background: '#fff'
+                          }}
+                          onError={e => { e.target.style.opacity = '0.3' }}
+                          onLoad={e => { e.target.style.opacity = '1' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                            <i className="fa-solid fa-circle-check" style={{ color: '#16a34a', fontSize: '0.85rem' }} />
+                            <strong style={{ fontSize: '0.82rem', color: '#15803d' }}>Custom Thumbnail Set ✓</strong>
+                          </div>
+                          <div style={{
+                            fontSize: '0.72rem',
+                            color: '#64748b',
+                            wordBreak: 'break-all',
+                            overflow: 'hidden',
+                            maxHeight: '2.5rem',
+                            lineHeight: 1.3
+                          }}>
+                            {resourceForm.customThumbnailUrl.startsWith('data:')
+                              ? '📷 Compressed local image (no Drive configured)'
+                              : resourceForm.customThumbnailUrl}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setResourceForm(f => ({
+                              ...f,
+                              customThumbnailUrl: '',
+                              thumbnailUrl: f.autoThumbnailUrl || ''
+                            }))}
+                            style={{
+                              marginTop: '5px',
+                              background: 'none',
+                              border: '1px solid #fca5a5',
+                              color: '#dc2626',
+                              fontSize: '0.7rem',
+                              borderRadius: '4px',
+                              padding: '2px 8px',
+                              cursor: 'pointer',
+                              fontWeight: 600
+                            }}
+                          >
+                            <i className="fa-solid fa-xmark" /> Clear
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <AdminImageUpload
-                      value={resourceForm.customThumbnailUrl || (resourceForm.thumbnailMode === 'manual' ? resourceForm.thumbnailUrl : '')}
+                      key="custom-thumb-uploader"
+                      value={resourceForm.customThumbnailUrl || ''}
                       onChange={handleCustomThumbnailChange}
                       label="Upload Custom Thumbnail"
                       dimensions="600 × 800 px (Portrait 3:4)"
