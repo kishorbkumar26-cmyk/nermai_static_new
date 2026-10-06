@@ -24,6 +24,12 @@ export default function Hero({ autoPlayInterval = 6000 }) {
     }
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+  // Track which slide indices had all their CDN fallbacks fail
+  const [failedSlides, setFailedSlides] = useState({});
+
+  const markSlideFailed = (idx) => {
+    setFailedSlides(prev => ({ ...prev, [idx]: true }))
+  }
 
   useEffect(() => {
     const unsub = fbFirestore.onHeroSlidesChanged(items => {
@@ -39,6 +45,7 @@ export default function Hero({ autoPlayInterval = 6000 }) {
       });
       setBanners(formattedBanners);
       setLoading(false);
+      setFailedSlides({}); // reset on fresh data
       try {
         localStorage.setItem('nermai_hero_banners_cache', JSON.stringify(formattedBanners));
       } catch (e) {
@@ -68,6 +75,11 @@ export default function Hero({ autoPlayInterval = 6000 }) {
     return <HeroCinematicDefault />;
   }
 
+  // If the current slide's image has completely failed, show the cinematic default
+  if (failedSlides[currentIndex]) {
+    return <HeroCinematicDefault />;
+  }
+
   return (
     <section className="hero-banner-container">
       {/* Slide Image Viewport */}
@@ -76,6 +88,7 @@ export default function Hero({ autoPlayInterval = 6000 }) {
           key={currentIndex}
           banner={banners[currentIndex]}
           isActive={true}
+          onAllFailed={() => markSlideFailed(currentIndex)}
         />
       </div>
 

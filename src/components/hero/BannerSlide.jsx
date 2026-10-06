@@ -12,7 +12,7 @@ function getBannerFallbacks(url) {
   ]
 }
 
-export default function BannerSlide({ banner, isActive }) {
+export default function BannerSlide({ banner, isActive, onAllFailed }) {
   const [imgSrc, setImgSrc]       = useState(banner.bgImage)
   const [mobSrc, setMobSrc]       = useState(banner.bgImageMobile)
   const [retryStep, setRetryStep] = useState(0)
@@ -20,17 +20,20 @@ export default function BannerSlide({ banner, isActive }) {
 
   if (!isActive) return null;
 
+  // When image has permanently failed, render nothing — Hero.jsx shows fallback
+  if (failed) return null;
+
   const handleError = () => {
     const fallbacks = getBannerFallbacks(banner.bgImage)
     const next = retryStep + 1
     if (next <= fallbacks.length) {
       setRetryStep(next)
       setImgSrc(fallbacks[next - 1])
-      // Also update mobile src
       const mobFallbacks = getBannerFallbacks(banner.bgImageMobile || banner.bgImage)
       if (mobFallbacks[next - 1]) setMobSrc(mobFallbacks[next - 1])
     } else {
       setFailed(true)
+      if (typeof onAllFailed === 'function') onAllFailed()
     }
   }
 
@@ -40,38 +43,22 @@ export default function BannerSlide({ banner, isActive }) {
         width: '100%',
         backgroundColor: '#1a0a0a',
         animation: 'heroSlideIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) both',
-        // Minimum height prevents layout collapse while image loads or if it fails
-        minHeight: failed ? '400px' : undefined,
       }}
     >
-      {!failed ? (
-        <picture className="hero-slide-picture" style={{ display: 'block', width: '100%' }}>
-          {mobSrc && mobSrc !== imgSrc && (
-            <source media="(max-width: 768px)" srcSet={mobSrc} />
-          )}
-          <img
-            key={imgSrc}
-            src={imgSrc}
-            alt="Promotional Banner"
-            className="hero-slide-img"
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-            draggable="false"
-            onError={handleError}
-          />
-        </picture>
-      ) : (
-        // Placeholder when image completely fails — keeps layout intact
-        <div style={{
-          width: '100%', minHeight: '400px',
-          background: 'linear-gradient(135deg, #2b0b0e 0%, #150507 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
-            <i className="fa-solid fa-image" style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }} />
-            <div style={{ fontSize: '0.85rem' }}>Banner image unavailable</div>
-          </div>
-        </div>
-      )}
+      <picture className="hero-slide-picture" style={{ display: 'block', width: '100%' }}>
+        {mobSrc && mobSrc !== imgSrc && (
+          <source media="(max-width: 768px)" srcSet={mobSrc} />
+        )}
+        <img
+          key={imgSrc}
+          src={imgSrc}
+          alt="Promotional Banner"
+          className="hero-slide-img"
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+          draggable="false"
+          onError={handleError}
+        />
+      </picture>
 
       <style>{`
         @keyframes heroSlideIn {
