@@ -248,6 +248,7 @@ function HeroSection({ toast }) {
           <div className="ap-hero-upload-col">
             <AdminImageUpload
               label="Desktop Hero Image"
+              dimensions="1920 × 600 px (Wide Banner ~16:5)"
               value={form.urlDesktop}
               onChange={val => setForm(f => ({ ...f, urlDesktop: val }))}
               subFolderName="nermai-hero-desktop"
@@ -263,6 +264,7 @@ function HeroSection({ toast }) {
           <div className="ap-hero-upload-col">
             <AdminImageUpload
               label="Mobile Hero Poster"
+              dimensions="1080 × 1080 px (1:1 Square)"
               value={form.urlMobile}
               onChange={val => setForm(f => ({ ...f, urlMobile: val }))}
               subFolderName="nermai-hero-mobile"
