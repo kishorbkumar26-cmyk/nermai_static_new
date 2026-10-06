@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { fbFirestore } from '../firebase/firestore'
 import { driveStorage } from '../services/driveStorage'
-import { getGoogleDriveCDNUrl } from '../utils/imageOptimizer'
+import { getGoogleDriveCDNUrl, compressImage } from '../utils/imageOptimizer'
 import HomeContentSection from './admin/HomeContentSection'
 import FooterContentSection from './admin/FooterContentSection'
 import TopBarAdminSection from './admin/TopBarAdminSection'
@@ -125,10 +125,29 @@ function HeroSection({ toast }) {
     }
     setSaving(true)
     try {
+      let urlDesktop = form.urlDesktop || ''
+      let urlMobile  = form.urlMobile  || ''
+
+      // If images are base64, ensure total size doesn't exceed Firestore 1MB document limit
+      const deskBytes = urlDesktop.startsWith('data:') ? urlDesktop.length : 0
+      const mobBytes  = urlMobile.startsWith('data:')  ? urlMobile.length  : 0
+
+      if (deskBytes + mobBytes > 700000) {
+        toast.info('Optimizing banner sizes for cloud database...')
+        if (deskBytes > 350000) {
+          const res = await compressImage(urlDesktop, { maxWidth: 1400, quality: 0.75, maxFileBytes: 250000 })
+          urlDesktop = res.dataUrl
+        }
+        if (mobBytes > 350000) {
+          const res = await compressImage(urlMobile, { maxWidth: 900, quality: 0.75, maxFileBytes: 250000 })
+          urlMobile = res.dataUrl
+        }
+      }
+
       if (editingId) {
         await fbFirestore.updateHeroSlide(editingId, {
-          urlDesktop: form.urlDesktop,
-          urlMobile:  form.urlMobile,
+          urlDesktop,
+          urlMobile,
           ctaLink:    form.ctaLink,
           scene:      form.scene,
           updatedAt:  new Date(),
@@ -136,7 +155,11 @@ function HeroSection({ toast }) {
         toast.success('✅ Slide updated successfully!')
         handleCancelEdit()
       } else {
-        await fbFirestore.addHeroSlide(form)
+        await fbFirestore.addHeroSlide({
+          ...form,
+          urlDesktop,
+          urlMobile
+        })
         setForm({ urlDesktop: '', urlMobile: '', ctaLink: '#', scene: 'none' })
         toast.success('✅ Hero slide added successfully!')
       }

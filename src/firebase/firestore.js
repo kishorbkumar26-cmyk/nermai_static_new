@@ -903,9 +903,10 @@ export const fbFirestore = {
   async addHeroSlide(data) {
     const slides = await this.getHeroSlides()
     const desktopUrl = data.urlDesktop || data.url || ''
+    const isDeskBase64 = typeof desktopUrl === 'string' && desktopUrl.startsWith('data:')
     return await addDoc(heroCol(), {
-      // Legacy field for backward compat — mirrors urlDesktop
-      url: desktopUrl,
+      // Legacy field for backward compat — only stored for URLs/Drive IDs, never duplicate base64
+      ...(isDeskBase64 ? {} : { url: desktopUrl }),
       // Responsive image fields
       urlDesktop: desktopUrl,                   // PC banner: 1920 × 600 px
       urlMobile:  data.urlMobile || '',          // Mobile poster: 768 × 1024 px
@@ -913,8 +914,9 @@ export const fbFirestore = {
       subtitle:   data.subtitle || '',
       cta:        data.cta      || '',
       ctaLink:    data.ctaLink  || '#',
+      scene:      data.scene    || 'none',
       order:      slides.length,
-      storageType: data.storageType || 'url',
+      storageType: data.storageType || (isDeskBase64 ? 'base64' : 'url'),
       createdAt:  serverTimestamp()
     })
   },

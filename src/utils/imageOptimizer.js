@@ -128,29 +128,32 @@ function dataURLtoBlob(dataurl) {
 }
 
 export function compressImage(file, options = {}) {
-  const { maxWidth = 1600, maxHeight = 1600, quality = 0.85, mimeType = 'image/webp' } = options
+  const { maxWidth = 1600, maxHeight = 1600, quality = 0.85, mimeType = 'image/webp', maxFileBytes = 280000 } = options
   return new Promise((resolve, reject) => {
     function processCanvas(img, originalSize) {
       let width = img.width
       let height = img.height
       if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth }
       if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight }
-      const maxFileBytes = 358400
+      const aspectRatio = width / (height || 1)
       let currentQuality = quality, currentWidth = width, currentHeight = height
       let dataUrl = '', compressedSize = 0, iteration = 0
       const outputType = (mimeType === 'image/webp' || mimeType === 'image/jpeg') ? mimeType : 'image/webp'
-      while (iteration < 4) {
+      while (iteration < 6) {
         const canvas = document.createElement('canvas')
-        canvas.width = currentWidth; canvas.height = currentHeight
+        canvas.width = currentWidth
+        canvas.height = currentHeight
         const ctx = canvas.getContext('2d')
-        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(img, 0, 0, currentWidth, currentHeight)
         dataUrl = canvas.toDataURL(outputType, currentQuality)
         compressedSize = Math.round((dataUrl.length - 22) * 3 / 4)
-        if (compressedSize <= maxFileBytes || iteration === 3) break
-        currentWidth = Math.max(1000, Math.round(currentWidth * 0.85))
-        currentHeight = Math.max(1000, Math.round(currentHeight * 0.85))
-        currentQuality = Math.max(0.65, currentQuality * 0.85)
+        if (compressedSize <= maxFileBytes || iteration === 5) break
+        // Scale down proportionally preserving aspect ratio
+        currentWidth = Math.max(480, Math.round(currentWidth * 0.82))
+        currentHeight = Math.max(120, Math.round(currentWidth / aspectRatio))
+        currentQuality = Math.max(0.60, currentQuality * 0.85)
         iteration++
       }
       let blob = null
