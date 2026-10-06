@@ -34,12 +34,16 @@ export default function Hero({ autoPlayInterval = 6000 }) {
   useEffect(() => {
     const unsub = fbFirestore.onHeroSlidesChanged(items => {
       const formattedBanners = (items || []).map(item => {
-        const desktopUrl = driveStorage.formatImageUrl(item.urlDesktop || item.url);
-        const mobileUrl = driveStorage.formatImageUrl(item.urlMobile || item.urlDesktop || item.url);
+        const rawDesktop = item.urlDesktop || item.url || ''
+        const rawMobile  = item.urlMobile  || item.urlDesktop || item.url || ''
+        const desktopUrl = driveStorage.formatImageUrl(rawDesktop, 1920)
+        const mobileUrl  = driveStorage.formatImageUrl(rawMobile,  1200)
         return {
           id: item.id,
-          bgImage: desktopUrl || mobileUrl,
-          bgImageMobile: mobileUrl || desktopUrl,
+          bgImage:        desktopUrl || mobileUrl,
+          bgImageMobile:  mobileUrl  || desktopUrl,
+          rawDesktop,
+          rawMobile,
           ctaLink: item.ctaLink
         };
       });

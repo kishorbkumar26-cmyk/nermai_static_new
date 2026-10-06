@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { extractGoogleDriveId } from '../../utils/imageOptimizer';
 
 function getBannerFallbacks(url) {
@@ -18,18 +18,27 @@ export default function BannerSlide({ banner, isActive, onAllFailed }) {
   const [retryStep, setRetryStep] = useState(0)
   const [failed, setFailed]       = useState(false)
 
+  useEffect(() => {
+    setImgSrc(banner.bgImage)
+    setMobSrc(banner.bgImageMobile)
+    setRetryStep(0)
+    setFailed(false)
+  }, [banner.bgImage, banner.bgImageMobile])
+
   if (!isActive) return null;
 
   // When image has permanently failed, render nothing — Hero.jsx shows fallback
   if (failed) return null;
 
   const handleError = () => {
-    const fallbacks = getBannerFallbacks(banner.bgImage)
+    const rawDesktop = banner.rawDesktop || banner.bgImage
+    const fallbacks = getBannerFallbacks(rawDesktop)
     const next = retryStep + 1
     if (next <= fallbacks.length) {
       setRetryStep(next)
       setImgSrc(fallbacks[next - 1])
-      const mobFallbacks = getBannerFallbacks(banner.bgImageMobile || banner.bgImage)
+      const rawMobile = banner.rawMobile || banner.bgImageMobile || rawDesktop
+      const mobFallbacks = getBannerFallbacks(rawMobile)
       if (mobFallbacks[next - 1]) setMobSrc(mobFallbacks[next - 1])
     } else {
       setFailed(true)

@@ -1811,8 +1811,9 @@ export default function FreeResourcesAdminSection({ toast }) {
                         padding: '0.75rem'
                       }}>
                         <img
-                          src={resourceForm.customThumbnailUrl}
+                          src={driveStorage.formatImageUrl(resourceForm.customThumbnailUrl) || resourceForm.customThumbnailUrl}
                           alt="Custom Thumbnail Preview"
+                          referrerPolicy="no-referrer"
                           style={{
                             width: '60px',
                             height: '80px',
@@ -1822,8 +1823,7 @@ export default function FreeResourcesAdminSection({ toast }) {
                             flexShrink: 0,
                             background: '#fff'
                           }}
-                          onError={e => { e.target.style.opacity = '0.3' }}
-                          onLoad={e => { e.target.style.opacity = '1' }}
+                          onError={driveStorage.handleImageError}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>

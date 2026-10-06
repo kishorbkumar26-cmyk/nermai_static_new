@@ -49,7 +49,13 @@ function formatDateStr(dateVal) {
 function getThumbnailUrl(res) {
   if (!res) return null
   if (res.thumbnailUrl && typeof res.thumbnailUrl === 'string' && res.thumbnailUrl.trim()) {
-    return res.thumbnailUrl
+    const trimmed = res.thumbnailUrl.trim()
+    if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed
+    const thumbDriveId = extractGoogleDriveId(trimmed)
+    if (thumbDriveId) {
+      return `https://drive.google.com/thumbnail?id=${thumbDriveId}&sz=w800`
+    }
+    return trimmed
   }
   const driveId = extractGoogleDriveId(res.url || res.driveUrl || res.driveFileId)
   if (driveId) {
