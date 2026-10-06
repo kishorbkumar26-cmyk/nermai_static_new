@@ -36,8 +36,8 @@ export default function AdminImageUpload({
     const lbl = (label || '').toLowerCase()
     const folder = (subFolderName || '').toLowerCase()
 
-    if (lbl.includes('desktop') || folder.includes('desktop')) return '1920 × 600 px (Wide Banner ~16:5)'
-    if (lbl.includes('mobile') || folder.includes('mobile')) return '1080 × 1080 px (1:1 Square)'
+    if (lbl.includes('desktop') || folder.includes('desktop')) return '1942 × 809 px (Landscape 12:5)'
+    if (lbl.includes('mobile') || folder.includes('mobile')) return '1024 × 1280 px (Portrait 4:5)'
     if (lbl.includes('why nermai') || folder.includes('why-nermai')) return '1024 × 475 px (Panoramic Landscape)'
     if (lbl.includes('logo') || folder.includes('logo')) return '512 × 512 px (Square PNG/SVG)'
     if (lbl.includes('topper') || lbl.includes('student') || folder.includes('toppers')) return '600 × 750 px (Portrait 4:5)'

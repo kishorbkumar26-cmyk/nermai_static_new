@@ -228,16 +228,16 @@ function HeroSection({ toast }) {
             <i className="fa-solid fa-desktop"></i>
             <div>
               <div className="ap-hero-dim-label">🖥️ PC / Desktop Banner</div>
-              <div className="ap-hero-dim-size">Recommended: <strong>1920 × 600 px</strong> (or 1920 × 700 px)</div>
-              <div className="ap-hero-dim-hint">Wide landscape banner • JPG, PNG or WebP</div>
+              <div className="ap-hero-dim-size">Recommended: <strong>1942 × 809 px</strong></div>
+              <div className="ap-hero-dim-hint">Wide landscape banner (12:5 ratio) • JPG, PNG or WebP</div>
             </div>
           </div>
           <div className="ap-hero-dim-badge ap-hero-dim-badge--mob">
             <i className="fa-solid fa-mobile-screen-button"></i>
             <div>
-              <div className="ap-hero-dim-label">📱 Mobile Banner (Revised Square Ratio)</div>
-              <div className="ap-hero-dim-size">Recommended: <strong>1080 × 1080 px</strong> (1:1 Square)</div>
-              <div className="ap-hero-dim-hint">Square ratio • Height-reduced • Slider arrows placed below image</div>
+              <div className="ap-hero-dim-label">📱 Mobile Banner</div>
+              <div className="ap-hero-dim-size">Recommended: <strong>1024 × 1280 px</strong> (Portrait 4:5)</div>
+              <div className="ap-hero-dim-hint">Portrait poster • Slider arrows placed below image</div>
             </div>
           </div>
         </div>
@@ -248,13 +248,13 @@ function HeroSection({ toast }) {
           <div className="ap-hero-upload-col">
             <AdminImageUpload
               label="Desktop Hero Image"
-              dimensions="1920 × 600 px (Wide Banner ~16:5)"
+              dimensions="1942 × 809 px (Landscape 12:5)"
               value={form.urlDesktop}
               onChange={val => setForm(f => ({ ...f, urlDesktop: val }))}
               subFolderName="nermai-hero-desktop"
-              maxWidth={1920}
-              aspectRatio="16/5"
-              hint="1920 × 600 px • Wide Desktop Banner"
+              maxWidth={1942}
+              aspectRatio="1942/809"
+              hint="1942 × 809 px • Wide Desktop Banner"
               placeholder="Paste Google Drive URL / ID or Image link for Desktop..."
               toast={toast}
             />
@@ -264,13 +264,13 @@ function HeroSection({ toast }) {
           <div className="ap-hero-upload-col">
             <AdminImageUpload
               label="Mobile Hero Poster"
-              dimensions="1080 × 1080 px (1:1 Square)"
+              dimensions="1024 × 1280 px (Portrait 4:5)"
               value={form.urlMobile}
               onChange={val => setForm(f => ({ ...f, urlMobile: val }))}
               subFolderName="nermai-hero-mobile"
-              maxWidth={1080}
-              aspectRatio="1/1"
-              hint="1080 × 1080 px • Revised 1:1 Square Mobile Poster"
+              maxWidth={1024}
+              aspectRatio="4/5"
+              hint="1024 × 1280 px • Portrait Mobile Poster"
               placeholder="Paste Google Drive URL / ID or Image link for Mobile..."
               toast={toast}
             />
