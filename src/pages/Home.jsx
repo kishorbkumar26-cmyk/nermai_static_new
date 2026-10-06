@@ -227,7 +227,7 @@ export default function Home() {
         {visibility.features !== false && <WhatYouGet />}
 
         {/* ── WHY NERMAI ── */}
-        <WhyNermai />
+        {visibility.whyNermai !== false && <WhyNermai />}
 
         {/* ── GALLERY ── */}
         {visibility.gallery !== false && <Gallery />}

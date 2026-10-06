@@ -77,6 +77,8 @@ export default function WhyNermaiAdminSection({ toast }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showPreview, setShowPreview] = useState(true)
+  const [isVisible, setIsVisible] = useState(true)
+  const [savingVisibility, setSavingVisibility] = useState(false)
 
   useEffect(() => {
     fbFirestore.getSettings().then((settings) => {
@@ -115,6 +117,11 @@ export default function WhyNermaiAdminSection({ toast }) {
         })
       } else {
         setShowcaseData(DEFAULT_WHY_NERMAI_SHOWCASE)
+      }
+
+      // Load home section visibility
+      if (settings?.homeContent?.visibility?.whyNermai !== undefined) {
+        setIsVisible(settings.homeContent.visibility.whyNermai)
       }
 
       setLoading(false)
@@ -259,6 +266,36 @@ export default function WhyNermaiAdminSection({ toast }) {
     }
   }
 
+  // ── Toggle Home Section Visibility ────────────────────────────────────────
+  const handleToggleVisibility = async (e) => {
+    const nextVal = e.target.checked
+    setIsVisible(nextVal)
+    setSavingVisibility(true)
+    try {
+      const s = await fbFirestore.getSettings() || {}
+      const updatedHomeContent = {
+        ...(s.homeContent || {}),
+        visibility: {
+          ...(s.homeContent?.visibility || {}),
+          whyNermai: nextVal
+        }
+      }
+      await fbFirestore.updateSettings({ homeContent: updatedHomeContent })
+      if (toast) {
+        toast[nextVal ? 'success' : 'info'](
+          nextVal
+            ? '🟢 "What Makes Nermai Different" section is now VISIBLE on homepage'
+            : '🔴 "What Makes Nermai Different" section is now HIDDEN from homepage'
+        )
+      }
+    } catch (err) {
+      if (toast) toast.error('Failed to update visibility: ' + err.message)
+      setIsVisible(!nextVal)
+    } finally {
+      setSavingVisibility(false)
+    }
+  }
+
   if (loading) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--gray-400)' }}>
@@ -310,6 +347,72 @@ export default function WhyNermaiAdminSection({ toast }) {
             )}
           </button>
         </div>
+      </div>
+
+      {/* ── Home Section Visibility Banner ── */}
+      <div style={{
+        background: isVisible ? 'rgba(34, 197, 94, 0.07)' : 'rgba(234, 88, 12, 0.08)',
+        border: `1.5px solid ${isVisible ? '#86efac' : '#fdba74'}`,
+        borderRadius: '12px',
+        padding: '0.9rem 1.25rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+            <span style={{
+              width: '10px', height: '10px', borderRadius: '50%',
+              background: isVisible ? '#16a34a' : '#ea580c',
+              flexShrink: 0,
+              boxShadow: isVisible ? '0 0 6px #4ade80' : '0 0 6px #fb923c'
+            }} />
+            <strong style={{ fontSize: '0.9rem', color: isVisible ? '#15803d' : '#c2410c' }}>
+              {isVisible
+                ? '"What Makes Nermai Different" Section is VISIBLE on Homepage'
+                : '"What Makes Nermai Different" Section is HIDDEN from Homepage'}
+            </strong>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--gray-500)' }}>
+            {isVisible
+              ? 'The Why Nermai features showcase is currently live and visible to all visitors on the homepage.'
+              : 'This section is currently hidden from the homepage. Toggle ON to make it visible to visitors.'}
+          </p>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gray-600)' }}>Section:</span>
+          <span style={{
+            position: 'relative', display: 'inline-block',
+            width: '46px', height: '24px',
+            background: isVisible ? '#16a34a' : '#cbd5e1',
+            borderRadius: '24px',
+            transition: 'background 0.2s',
+            cursor: savingVisibility ? 'wait' : 'pointer'
+          }}>
+            <input
+              type="checkbox"
+              checked={isVisible}
+              onChange={handleToggleVisibility}
+              disabled={savingVisibility}
+              style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+            />
+            <span style={{
+              position: 'absolute',
+              top: '3px',
+              left: isVisible ? '25px' : '3px',
+              width: '18px', height: '18px',
+              background: '#ffffff',
+              borderRadius: '50%',
+              transition: 'left 0.2s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }} />
+          </span>
+          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: isVisible ? '#15803d' : '#9ca3af' }}>
+            {savingVisibility ? 'Saving...' : (isVisible ? 'ON' : 'OFF')}
+          </span>
+        </label>
       </div>
 
       {/* Main Tab Navigation */}
